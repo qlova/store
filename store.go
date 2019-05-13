@@ -3,6 +3,15 @@ package store
 import "io"
 import "io/ioutil"
 
+//A Cursor allows listing of data and stores within a store.
+type Cursor interface {
+	Name() string
+	Goto(name string)
+
+	Stores(int) []string
+	Data(int) []string
+}
+
 //A location can be created or deleted.
 type Location interface {
 	//Return the full location.
@@ -20,7 +29,7 @@ type Store interface {
 	Location
 	
 	//List the files and stores in this directory.
-	List() []string //TODO replace this with cursor
+	List() Cursor
 	
 	//Create at this location.
 	Create() error
