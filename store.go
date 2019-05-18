@@ -65,6 +65,16 @@ type Data struct {
 	}
 }
 
+func (data Data) Error() error {
+	if data.err != nil {
+		return data.err
+	}
+	if err := data.Raw.Error(); err != nil {
+		return err
+	}
+	return nil
+}
+
 func (data Data) SetString(s string) error {
 	var raw = data.Raw.Create()
 	if err := data.Raw.Error(); err != nil {
