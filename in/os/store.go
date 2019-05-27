@@ -53,8 +53,11 @@ func (store Store) Delete() error {
 
 //Open the given local directory as a store.
 func Open(directory string) Store {
-	
-	err := os.MkdirAll(directory, 0700)
+	var err error
+
+	if _, existance := os.Stat(directory); os.IsNotExist(existance) {
+		err = os.MkdirAll(directory, 0700)
+	}
 	
 	return Store{
 		Path: directory,
