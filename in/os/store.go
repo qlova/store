@@ -39,7 +39,17 @@ func (store Store) String() string {
 }
 
 func (store Store) List() qlovastore.Cursor {
-	return nil
+	
+	dir, err := os.Open(store.Path)
+	if err != nil {
+		store.err = err
+		return nil
+	}
+	
+	return &Cursor{
+		directory: dir,
+		Path: store.Path,
+	}
 }
 
 func (store Store) Exists() bool {
