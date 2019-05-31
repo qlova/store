@@ -66,7 +66,7 @@ func Open(directory string) Store {
 	var err error
 
 	if _, existance := os.Stat(directory); os.IsNotExist(existance) {
-		err = os.MkdirAll(directory, 0700)
+		err = os.Mkdir(directory, 0700)
 	}
 	
 	return Store{
