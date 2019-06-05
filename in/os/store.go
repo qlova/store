@@ -8,7 +8,7 @@ import qlovastore "github.com/qlova/store"
 
 type Store struct {
 	err error
-	
+
 	Path string
 }
 
@@ -26,7 +26,7 @@ func (store Store) Data(name string) qlovastore.Data {
 
 func (store Store) Goto(path string) qlovastore.Store {
 	return Store{
-		Path: store.Path+"/"+path,
+		Path: store.Path + "/" + path,
 	}
 }
 
@@ -39,16 +39,16 @@ func (store Store) String() string {
 }
 
 func (store Store) List() qlovastore.Cursor {
-	
+
 	dir, err := os.Open(store.Path)
 	if err != nil {
 		store.err = err
 		return nil
 	}
-	
+
 	return &Cursor{
 		directory: dir,
-		Path: store.Path,
+		Path:      store.Path,
 	}
 }
 
@@ -68,9 +68,9 @@ func Open(directory string) Store {
 	if _, existance := os.Stat(directory); os.IsNotExist(existance) {
 		err = os.Mkdir(directory, 0700)
 	}
-	
+
 	return Store{
 		Path: directory,
-		err: err,
+		err:  err,
 	}
 }

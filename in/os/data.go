@@ -5,7 +5,7 @@ import "io"
 
 type Data struct {
 	err error
-	
+
 	Path string
 }
 
@@ -55,4 +55,4 @@ func (data *Data) String() string {
 
 func (data *Data) Error() error {
 	return data.err
-} 
+}

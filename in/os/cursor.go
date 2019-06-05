@@ -5,9 +5,9 @@ import "os"
 
 type Cursor struct {
 	filename string
-	
+
 	Path string
-	
+
 	directory *os.File
 }
 
@@ -23,25 +23,25 @@ func (cursor *Cursor) Goto(name string) {
 
 func (cursor *Cursor) Stores(count int) []string {
 	var names []string
-	
-	for i:=0; i < count; i++ {
+
+	for i := 0; i < count; i++ {
 		file, err := cursor.directory.Readdir(1)
 		if err != nil {
 			return nil
 		}
-		
+
 		if len(file) > 0 && file[0].IsDir() {
 			names = append(names, file[0].Name())
 		}
 	}
-	
+
 	return names
 }
 
-func (cursor *Cursor) Data(count int) []string{
+func (cursor *Cursor) Data(count int) []string {
 	var names []string
-	
-	for i:=0; i < count; i++ {
+
+	for i := 0; i < count; i++ {
 		file, err := cursor.directory.Readdir(1)
 		if err != nil {
 			if err == io.EOF {
@@ -49,11 +49,11 @@ func (cursor *Cursor) Data(count int) []string{
 			}
 			return nil
 		}
-		
-		if len(file) > 0 &&  !file[0].IsDir() {
+
+		if len(file) > 0 && !file[0].IsDir() {
 			names = append(names, file[0].Name())
 		}
 	}
-	
+
 	return names
 }

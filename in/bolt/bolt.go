@@ -5,7 +5,7 @@ import "github.com/boltdb/bolt"
 
 type Tx struct {
 	*bolt.Tx
-	Level int
+	Level    int
 	ReadOnly bool
 }
 
@@ -14,17 +14,17 @@ func (tx *Tx) BeginWrite(db *bolt.DB) (*Tx, error) {
 		var tx, err = db.Begin(true)
 		return &Tx{tx, 0, false}, err
 	} else {
-		
+
 		if tx.ReadOnly {
 			err := tx.Rollback()
 			if err != nil {
 				return nil, err
 			}
-			
+
 			tx, err := db.Begin(true)
 			return &Tx{tx, 0, false}, err
 		}
-		
+
 		tx.Level++
 		return tx, nil
 	}
@@ -69,7 +69,7 @@ func (tx *Tx) Rollback() error {
 type WriterCloser struct {
 	*Tx
 	Bucket *bolt.Bucket
-	Key string
+	Key    string
 }
 
 func (wc WriterCloser) Write(data []byte) (int, error) {

@@ -8,16 +8,16 @@ type Data struct {
 	Store
 
 	Key string
-	Tx *Tx
+	Tx  *Tx
 }
 
 func (data *Data) Exists() bool {
 	var tx, _ = data.Tx.BeginRead(data.DB)
-	
+
 	var exists = data.Bucket(tx) != nil
-	
+
 	tx.Rollback()
-	
+
 	return exists
 }
 
@@ -27,7 +27,7 @@ func (data *Data) Create() io.WriteCloser {
 		data.err = err
 		return nil
 	}
-	
+
 	var bucket = data.Bucket(tx)
 	if bucket == nil {
 		err := tx.Commit()
@@ -38,7 +38,7 @@ func (data *Data) Create() io.WriteCloser {
 		data.err = errors.New("Bucket does not exist")
 		return nil
 	}
-	
+
 	bucket.Put([]byte(data.Key), []byte{})
 
 	return WriterCloser{tx, bucket, data.Key}
@@ -49,7 +49,7 @@ func (data *Data) Delete() error {
 		data.err = err
 		return nil
 	}
-	
+
 	var bucket = data.Bucket(tx)
 	if bucket == nil {
 		err := tx.Commit()
@@ -70,7 +70,7 @@ func (data *Data) Reader() io.ReadCloser {
 		data.err = err
 		return nil
 	}
-	
+
 	var bucket = data.Bucket(tx)
 	if bucket == nil {
 		err := tx.Rollback()
@@ -91,7 +91,7 @@ func (data *Data) Size() int64 {
 		data.err = err
 		return -1
 	}
-	
+
 	var bucket = data.Bucket(tx)
 	if bucket == nil {
 		err := tx.Rollback()
@@ -104,25 +104,25 @@ func (data *Data) Size() int64 {
 	}
 
 	var size = len(bucket.Get([]byte(data.Key)))
-	
+
 	tx.Rollback()
-	
+
 	return int64(size)
 }
 
 func (data *Data) String() string {
-	
+
 	var result string
-	
+
 	for _, name := range data.Buckets {
-		result += name+"/"
+		result += name + "/"
 	}
-	
+
 	result += data.Key
-	
+
 	return result
 }
 
 func (data *Data) Error() error {
 	return data.err
-} 
+}
