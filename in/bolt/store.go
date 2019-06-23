@@ -31,7 +31,7 @@ func (store Store) Bucket(tx *Tx) *bolt.Bucket {
 }
 
 func (store Store) Exists() bool {
-	var tx, err = store.DB.Begin(true)
+	var tx, err = store.DB.Begin(false)
 	if err != nil {
 		return false
 	}
@@ -76,7 +76,7 @@ func (store Store) Create() error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback()
+	defer tx.Commit()
 
 	var root = tx.Bucket([]byte("root"))
 
