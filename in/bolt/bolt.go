@@ -1,99 +1,52 @@
 package bolt
 
-import "bytes"
-import "github.com/boltdb/bolt"
+import (
+	"github.com/boltdb/bolt"
+	"github.com/qlova/store"
+)
 
-type Tx struct {
-	*bolt.Tx
-	Level    int
-	ReadOnly bool
+//DB is the stored bolt.DB state for the types in this package.
+type DB struct {
+	*bolt.DB
+
+	Buckets []string
+	Key     string
 }
 
-func (tx *Tx) BeginWrite(db *bolt.DB) (*Tx, error) {
-	if tx == nil {
-		var tx, err = db.Begin(true)
-		return &Tx{tx, 0, false}, err
-	} else {
-
-		if tx.ReadOnly {
-			err := tx.Rollback()
-			if err != nil {
-				return nil, err
-			}
-
-			tx, err := db.Begin(true)
-			return &Tx{tx, 0, false}, err
-		}
-
-		tx.Level++
-		return tx, nil
-	}
+//Database is a boltdb database.
+type Database struct {
+	Bucket
 }
 
-func (tx *Tx) BeginRead(db *bolt.DB) (*Tx, error) {
-	if tx == nil {
-		var tx, err = db.Begin(false)
-		return &Tx{tx, 0, true}, err
-	} else {
-		tx.Level++
-		return tx, nil
-	}
-}
-
-func (tx *Tx) Commit() error {
-	if tx.Level <= 0 {
-		if tx.ReadOnly {
-			return tx.Tx.Rollback()
-		} else {
-			return tx.Tx.Commit()
-		}
-	} else {
-		tx.Level--
-		return nil
-	}
-}
-
-func (tx *Tx) Rollback() error {
-	if tx.Level <= 0 {
-		if tx.ReadOnly {
-			return tx.Tx.Rollback()
-		} else {
-			return tx.Tx.Commit()
-		}
-	} else {
-		tx.Level--
-		return nil
-	}
-}
-
-type WriterCloser struct {
-	*Tx
-	Bucket *bolt.Bucket
-	Key    string
-}
-
-func (wc WriterCloser) Write(data []byte) (int, error) {
-	err := wc.Bucket.Put([]byte(wc.Key), append(wc.Bucket.Get([]byte(wc.Key)), data...))
+// Open the db file in your current directory.
+// It will be created if it doesn't exist.
+func Open(name string) (store.Root, error) {
+	db, err := bolt.Open(name, 0700, nil)
 	if err != nil {
-		return 0, err
-	} else {
-		return len(data), nil
+		return store.Root{}, err
 	}
-}
 
-func (wc WriterCloser) Close() error {
-	return wc.Commit()
-}
+	tx, err := db.Begin(true)
+	if err != nil {
+		return store.Root{}, err
+	}
 
-type ReaderCloser struct {
-	*Tx
-	reader *bytes.Reader
-}
+	_, err = tx.CreateBucketIfNotExists([]byte("root"))
+	if err != nil {
+		return store.Root{}, err
+	}
 
-func (rc ReaderCloser) Read(buffer []byte) (int, error) {
-	return rc.reader.Read(buffer)
-}
+	err = tx.Commit()
+	if err != nil {
+		return store.Root{}, err
+	}
 
-func (rc ReaderCloser) Close() error {
-	return rc.Rollback()
+	//wew messy
+	return store.Root{Object: store.Object{
+		Node: Database{Bucket{
+			DB: DB{
+				DB: db,
+			},
+		}},
+	}}, nil
 }

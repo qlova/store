@@ -4,11 +4,15 @@ import "fmt"
 import "github.com/qlova/store/in/os"
 
 func main() {
-	var ConfigStore = os.Open("config")
+	var ConfigStore, err = os.Open("config")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
-	var Config = ConfigStore.Data("config.ini")
+	var Config = ConfigStore.Value("config.ini")
 
-	if err := Config.SetString("[INI]\n\ta = 1234"); err != nil {
+	if err := Config.SetString("[INI]\n\ta = 1234\n"); err != nil {
 		fmt.Println(err)
 	}
 }

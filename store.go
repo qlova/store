@@ -1,114 +1,151 @@
 package store
 
-import "io"
-import "io/ioutil"
+import (
+	"bytes"
+	"io"
+	"strings"
+)
 
-//A Cursor allows listing of data and stores within a store.
-type Cursor interface {
+//Reference is for keeping track of children.
+type Reference struct {
+
+	//The package this Reference has been set from.
+	Package string
+
+	//The internal package location of the Reference.
+	Internal string
+
+	//This should be set to the absolute path of the node in case the implementation changes.
+	Fallback string
+}
+
+//Children is a list of children for a given node.
+type Children interface {
+
+	//Get a reference to this child.
+	Reference() Reference
+
+	//Skip to the child with name 'name'.
+	SkipTo(reference Reference) error
+
+	//Return the name of the current child.
 	Name() string
-	Goto(name string)
 
-	Stores(int) []string
-	Data(int) []string
+	//Return the current child as a node, nil if the current child is not a node.
+	Node() Node
+
+	//Return the current child as data, nil if the current child is not data.
+	Data() Data
+
+	//Goto the next child.
+	Next() error
 }
 
-//A location can be created or deleted.
-type Location interface {
-	//Return the full location.
-	String() string
-
-	//Delete at this location.
-	Delete() error
-
-	//Does this location exist?
-	Exists() bool
+//Tree is the lowlevel interface required for Objects.
+type Tree interface {
+	Node
 }
 
-//A store can store data and stores.
-type Store interface {
-	Location
+//Node is the lowlevel interface required for Trees.
+//A node is a location in a tree, it doesn't have to exist.
+type Node interface {
 
-	//List the files and stores in this directory.
-	List() Cursor
+	//Return the name of this node.
+	Name() string
 
-	//Create at this location.
+	//Create this node.
 	Create() error
 
-	//Return the store at the given relative path.
-	Goto(name string) Store
+	//Delete this node.
+	Delete() error
 
-	//Return the data at the given relative path.
+	//Return the node at the relative path 'location'.
+	Goto(location string) Node
+
+	//Return the data child of this node with the specified 'name'.
 	Data(name string) Data
 
-	//Holds the latest error.
-	Error() error
+	//Return the absolute path of this node.
+	Path() string
+
+	//Returns true if the node is currently available to make modifications.
+	Available() bool
+
+	Children(max ...int) Children
+
+	//Returns the parent node.
+	Parent() Node
 }
 
-//Data can be opened for reading or writing.
-type Data struct {
-	err error
+//Data is the lowlevel interface required for Values.
+type Data interface {
 
-	Raw interface {
-		Location
+	//Sets data from reader.
+	From(io.Reader) error
 
-		//Create, and open the data for writing.
-		Create() io.WriteCloser
+	//Copy data to writer.
+	CopyTo(io.Writer) error
 
-		//Open the data for reading.
-		Reader() io.ReadCloser
+	//Deletes data.
+	Delete() error
 
-		//Return the size of the file.
-		Size() int64
+	//Returns the size of the data, -1 if unknown size.
+	Size() int64
 
-		//Holds the latest error.
-		Error() error
-	}
+	//Return the absolute path of this data.
+	Path() string
+
+	//Returns true if data is available to read.
+	Available() bool
 }
 
-func (data Data) Error() error {
-	if data.err != nil {
-		return data.err
-	}
-	if err := data.Raw.Error(); err != nil {
-		return err
-	}
-	return nil
+//Root can contain objects, or values.
+type Root struct {
+	Object
 }
 
-func (data Data) SetString(s string) error {
-	var raw = data.Raw.Create()
-	if err := data.Raw.Error(); err != nil {
-		return err
-	}
-
-	_, err := raw.Write([]byte(s))
-	if err != nil {
-		return err
-	}
-
-	raw.Close()
-	return nil
+//Object can contain other objects, or values.
+type Object struct {
+	Node
 }
 
-func (data Data) String() string {
-	var raw = data.Raw.Reader()
-	if err := data.Raw.Error(); err != nil {
-		data.err = err
-		return ""
+//Value returns the value of name 'name'.
+func (object Object) Value(name string) Value {
+	return Value{object.Data(name)}
+}
+
+//Goto returns a new node at the location relative to the current node.
+func (object Object) Goto(location string) Object {
+	return Object{object.Node.Goto(location)}
+}
+
+//List returns a slice of values and objects for this object.
+func (object Object) List(amount ...int) (result []string, err error) {
+
+	var children = object.Children(amount...)
+
+	for err := children.Next(); err == nil; err = children.Next() {
+		result = append(result, children.Name())
+	}
+	if err == io.EOF {
+		err = nil
 	}
 
-	binary, err := ioutil.ReadAll(raw)
-	if err != nil {
-		data.err = err
-		return ""
-	}
+	return
+}
 
-	var result = string(binary)
+//Value is an abstract representation of a datatype.
+type Value struct {
+	Data
+}
 
-	err = raw.Close()
-	if err != nil {
-		data.err = err
-	}
+//SetString sets value to s
+func (value Value) SetString(s string) error {
+	return value.From(strings.NewReader(s))
+}
 
-	return result
+func (value Value) String() (string, error) {
+	var buffer bytes.Buffer
+	err := value.CopyTo(&buffer)
+	return buffer.String(), err
 }
