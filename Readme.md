@@ -18,20 +18,20 @@ import "fmt"
 import "github.com/qlova/store/in/os"
 
 func main() {
-	var store, err = os.Open("store")
-	if err != nil {
-		fmt.Println(err)
-		return
+    var store, err = os.Open("store")
+    if err != nil {
+        fmt.Println(err)
+        return
     }
-    
+
     var ConfigFolder = store.Goto("config")
     ConfigFolder.Create()
 
-	var Config = ConfigFolder.Value("config.ini")
+    var Config = ConfigFolder.Value("config.ini")
 
-	if err := Config.SetString("[INI]\n\ta = 1234\n"); err != nil {
-		fmt.Println(err)
-	}
+    if err := Config.SetString("[INI]\n\ta = 1234\n"); err != nil {
+        fmt.Println(err)
+    }
 }
 ```
 
