@@ -62,7 +62,7 @@ func (bucket Bucket) Data(name string) store.Data {
 
 	copy(key.Buckets, bucket.Buckets)
 
-	return store.Value{Data: key}
+	return key
 }
 
 //Goto navigates to the relative bucket by path.

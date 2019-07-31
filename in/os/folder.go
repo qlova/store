@@ -36,7 +36,7 @@ func (folder Folder) Children(amount ...int) store.Children {
 func (folder Folder) Data(name string) store.Data {
 	var file = File{folder.OS}
 	file.OS.Path = path.Join(file.OS.Path, name)
-	return store.Value{Data: file}
+	return file
 }
 
 //Goto navigates to the relative folder by path.

@@ -40,7 +40,7 @@ func (folder Folder) Children(amount ...int) store.Children {
 func (folder Folder) Data(name string) store.Data {
 	var object = Object{folder.S3}
 	object.Key = path.Join(folder.Key, name)
-	return store.Value{Data: object}
+	return object
 }
 
 //Goto navigates to the relative folder by path.
