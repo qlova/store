@@ -9,6 +9,8 @@ import (
 	"github.com/qlova/store"
 )
 
+var Public bool
+
 //S3 is the stored S3 state for the types in this package.
 type S3 struct {
 	*s3.S3

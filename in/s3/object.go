@@ -56,10 +56,15 @@ func (object Object) CopyTo(writer io.Writer) error {
 
 //From creates and writes an object from the specified reader.
 func (object Object) From(reader io.Reader) error {
+	var acl *string
+	if Public {
+		acl = aws.String("public-read")
+	}
 	_, err := object.Upload(&s3manager.UploadInput{
 		Bucket: aws.String(object.Bucket),
 		Key:    aws.String(object.Key),
 		Body:   reader,
+		ACL:    acl,
 	})
 	return err
 }
