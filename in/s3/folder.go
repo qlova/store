@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"errors"
 	"path"
 
 	"github.com/aws/aws-sdk-go/service/s3/s3manager"
@@ -67,6 +68,18 @@ func (folder Folder) Path() string {
 
 //Create creates the current S3 folder.
 func (folder Folder) Create() error {
+	if base := path.Base(folder.Key); base == "_" {
+		return errors.New(base + ": invalid folder name")
+	}
+
+	var parent = folder.Parent().(Folder)
+	if parent.Key == "" || parent.Key == "../" || parent.Key == ".." || parent.Key == "." {
+		return nil
+	}
+	if err := parent.Create(); err != nil {
+		return err
+	}
+
 	var _, err = folder.PutObject(&s3.PutObjectInput{
 		Bucket: aws.String(folder.Bucket),
 		Key:    aws.String(folder.Key + "\n"),
