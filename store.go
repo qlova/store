@@ -2,6 +2,7 @@ package store
 
 import (
 	"bytes"
+	"encoding/json"
 	"io"
 	"strings"
 )
@@ -148,4 +149,19 @@ func (value Value) String() (string, error) {
 	var buffer bytes.Buffer
 	err := value.CopyTo(&buffer)
 	return buffer.String(), err
+}
+
+//EncodeIndentedJSON encodes indented JSON onto the value.
+func (value Value) EncodeIndentedJSON(i interface{}) (err error) {
+	var reader, writer = io.Pipe()
+	go func() {
+		var encoder = json.NewEncoder(writer)
+		encoder.SetIndent("", "\t")
+		err = encoder.Encode(i)
+		writer.Close()
+	}()
+	if err2 := value.From(reader); err2 != nil {
+		return err2
+	}
+	return err
 }
