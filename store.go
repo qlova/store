@@ -165,3 +165,16 @@ func (value Value) EncodeIndentedJSON(i interface{}) (err error) {
 	}
 	return err
 }
+
+//DecodeJSON decodes JSON from the value.
+func (value Value) DecodeJSON(i interface{}) (err error) {
+	var reader, writer = io.Pipe()
+	go func() {
+		err = value.CopyTo(writer)
+	}()
+
+	if err2 := json.NewDecoder(reader).Decode(i); err2 != nil {
+		return err2
+	}
+	return err
+}
