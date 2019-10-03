@@ -1,7 +1,7 @@
 # Qlovastore [![Godoc](https://godoc.org/github.com/qlova/store?status.svg)](https://godoc.org/github.com/qlova/store) [![Go Report Card](https://goreportcard.com/badge/github.com/qlova/store)](https://goreportcard.com/report/github.com/qlova/store)
 
 Qlovastore is a storage abstraction library for Go.  
-Both objects and values can be stored, where an object can have children objects or values.  
+Both objects and values can be stored, where an object can have children and/or values.  
 
 **Backends:**  
 
