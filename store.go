@@ -121,12 +121,12 @@ func (object Object) Goto(location string) Object {
 }
 
 //List returns a slice of values and objects for this object.
-func (object Object) List(amount ...int) (result []string, err error) {
+func (object Object) List(amount ...int) (result []Value, err error) {
 
 	var children = object.Children(amount...)
 
 	for err := children.Next(); err == nil; err = children.Next() {
-		result = append(result, children.Name())
+		result = append(result, Value{children.Data()})
 	}
 	if err == io.EOF {
 		err = nil

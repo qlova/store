@@ -18,19 +18,19 @@ type List struct {
 	objects *s3.ListObjectsOutput
 	index   int
 
-	current string
+	current *s3.Object
 }
 
 //Name returns the current item's name or blank if the current item is empty.
 func (list *List) Name() string {
-	return strings.TrimSuffix(strings.TrimPrefix(list.current, list.Key), "\n")
+	return strings.TrimSuffix(strings.TrimPrefix(*list.current.Key, list.Key), "\n")
 }
 
 //Data returns the current item as data or nil if the current item is not data.
 func (list *List) Data() store.Data {
 	var name = list.Name()
 	if !strings.HasSuffix(name, "\n") {
-		var object = Object{list.S3}
+		var object = Object{list.S3, list.current}
 		object.Key = path.Join(object.Key, name)
 		return object
 	}
@@ -39,7 +39,7 @@ func (list *List) Data() store.Data {
 
 //Node returns the current item as a node or nil if the current item is not a node.
 func (list *List) Node() store.Node {
-	if strings.HasSuffix(list.current, "\n") {
+	if strings.HasSuffix(*list.current.Key, "\n") {
 		var folder = Folder{list.S3}
 		folder.Key = path.Join(folder.Key, list.Name())
 		return folder
@@ -51,8 +51,8 @@ func (list *List) Node() store.Node {
 func (list *List) Reference() store.Reference {
 	return store.Reference{
 		Package:  "s3",
-		Internal: list.current,
-		Fallback: list.current,
+		Internal: *list.current.Key,
+		Fallback: *list.current.Key,
 	}
 }
 
@@ -91,7 +91,7 @@ func (list *List) next(ref *string) error {
 
 	//Further fetches.
 	if list.index >= len(list.objects.Contents) {
-		var marker = aws.String(list.current)
+		var marker = list.current.Key
 		if ref != nil {
 			marker = ref
 		}
@@ -114,10 +114,10 @@ func (list *List) next(ref *string) error {
 		}
 	}
 
-	list.current = *(list.objects.Contents[list.index].Key)
+	list.current = list.objects.Contents[list.index]
 	list.index++
 
-	if list.current == list.Key {
+	if *list.current.Key == list.Key {
 		return list.Next()
 	}
 

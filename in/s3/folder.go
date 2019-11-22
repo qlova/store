@@ -20,7 +20,7 @@ type Folder struct {
 
 //Available returns if the folder is available for modifications.
 func (folder Folder) Available() bool {
-	var object = Object{folder.S3}
+	var object = Object{folder.S3, nil}
 	object.Key += "\n"
 	return object.Available()
 }
@@ -39,7 +39,7 @@ func (folder Folder) Children(amount ...int) store.Children {
 
 //Data returns the object with the given name as a store.Data.
 func (folder Folder) Data(name string) store.Data {
-	var object = Object{folder.S3}
+	var object = Object{folder.S3, nil}
 	object.Key = path.Join(folder.Key, name)
 	return object
 }

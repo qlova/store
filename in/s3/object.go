@@ -16,6 +16,7 @@ var _ = store.Data(Object{})
 //Object is an S3 object.
 type Object struct {
 	S3
+	Object *s3.Object
 }
 
 //Available returns if the object is available for reading.
