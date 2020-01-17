@@ -11,6 +11,16 @@ type Condition struct {
 	args []interface{}
 }
 
+//False is a condition that evaluates to false.
+var False = Condition{
+	Buffer: *bytes.NewBuffer([]byte("false")),
+}
+
+//True is a condition that evaluates to false.
+var True = Condition{
+	Buffer: *bytes.NewBuffer([]byte("true")),
+}
+
 func (c *Condition) value(v interface{}) string {
 	c.args = append(c.args, v)
 	return fmt.Sprintf("$%v", len(c.args))
