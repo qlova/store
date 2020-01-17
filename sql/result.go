@@ -23,6 +23,12 @@ func (result Result) Query() Query {
 	return result.q
 }
 
+//Scan is like database/sql.Rows.Scan except it automatically calls database/sql.Rows.Next
+func (result Result) Scan(values ...interface{}) error {
+	result.Rows.Next()
+	return result.Rows.Scan(values...)
+}
+
 //Read reads the result into the specified slice. Returns the number of rows read.
 func (result Result) Read(slice interface{}) (int, error) {
 	if reflect.TypeOf(slice).Kind() != reflect.Slice {

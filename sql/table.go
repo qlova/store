@@ -7,23 +7,26 @@ import (
 
 //Table is a sql Table.
 type Table interface {
-	Table() NewTable
+	Table() *NewTable
 }
 
 //NewTable is embedded in structs to create sql table definitions.
 type NewTable struct {
 	db   Database
 	name string
+
+	structure Table
 }
 
 //Table defines that New Table is table.
-func (table NewTable) Table() NewTable {
+func (table *NewTable) Table() *NewTable {
 	return table
 }
 
-func (table *NewTable) set(db Database, name string) {
+func (table *NewTable) set(db Database, name string, structure Table) {
 	table.db = db
 	table.name = name
+	table.structure = structure
 }
 
 //Insert inserts a struct into this table.
@@ -130,7 +133,15 @@ func (table *NewTable) selectType(header string, columns ...Column) Query {
 	var query = table.db.NewQuery()
 
 	if len(columns) == 0 {
-		fmt.Fprintf(query, "%v * FROM %v\n", header, table.name)
+		var T = reflect.TypeOf(table.structure).Elem()
+		fmt.Fprintf(query, "%v ", header)
+		for i := 1; i < T.NumField(); i++ {
+			fmt.Fprintf(query, "%v", T.Field(i).Name)
+			if i < T.NumField()-1 {
+				query.WriteByte(',')
+			}
+		}
+		fmt.Fprintf(query, " FROM %v\n", table.name)
 		return query
 	}
 

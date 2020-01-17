@@ -32,6 +32,16 @@ func (t NewType) Type() NewType {
 	return t
 }
 
+var star = starType{NewType{"*"}}
+
+type starType struct {
+	NewType
+}
+
+func (starType) String() string {
+	return "*"
+}
+
 //Int is a sql 'int'.
 type Int struct {
 	NewType
