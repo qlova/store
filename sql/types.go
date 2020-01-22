@@ -3,6 +3,7 @@ package sql
 import (
 	"fmt"
 	"strconv"
+	"time"
 )
 
 //Column is a sql column.
@@ -77,9 +78,9 @@ func (String) String() string {
 }
 
 //Value returns the string as a value.
-func (i String) Value(v string) Value {
+func (s String) Value(v string) Value {
 	return Value{
-		key: i.string,
+		key: s.string,
 		arg: v,
 	}
 }
@@ -93,5 +94,103 @@ func (s String) Orderable() string {
 func (s String) Equals(b string) Condition {
 	var c Condition
 	fmt.Fprintf(&c, "%v=%v", s.string, c.value(b))
+	return c
+}
+
+//Text is an sql 'text'
+type Text struct {
+	NewType
+}
+
+func (Text) String() string {
+	return "text"
+}
+
+//Value returns the string as a value.
+func (t Text) Value(v string) Value {
+	return Value{
+		key: t.string,
+		arg: v,
+	}
+}
+
+//Orderable strings are orderable.
+func (t Text) Orderable() string {
+	return t.string
+}
+
+//Equals returns an equality condition on this column.
+func (t Text) Equals(b string) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v=%v", t.string, c.value(b))
+	return c
+}
+
+//Boolean is an sql 'boolean'
+type Boolean struct {
+	NewType
+}
+
+func (Boolean) String() string {
+	return "boolean"
+}
+
+//Value returns the string as a value.
+func (b Boolean) Value(v bool) Value {
+	return Value{
+		key: b.string,
+		arg: v,
+	}
+}
+
+//Orderable booleans are orderable.
+func (b Boolean) Orderable() string {
+	return b.string
+}
+
+//Equals returns an equality condition on this column.
+func (b Boolean) Equals(v bool) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v=%v", b.string, c.value(v))
+	return c
+}
+
+//Serial is a sql 'serial'.
+type Serial struct {
+	NewType
+}
+
+func (Serial) String() string {
+	return "serial"
+}
+
+//Equals returns an equality condition on this column.
+func (s Serial) Equals(b int) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v=%v", s.string, b)
+	return c
+}
+
+//Timestamp is a sql 'timestamp'.
+type Timestamp struct {
+	NewType
+}
+
+func (Timestamp) String() string {
+	return "timestamp"
+}
+
+//Value returns the times.Time as a timestamp value.
+func (t Timestamp) Value(v time.Time) Value {
+	return Value{
+		key: t.string,
+		arg: v,
+	}
+}
+
+//Equals returns an equality condition on this column.
+func (t Timestamp) Equals(b time.Time) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v=%v", t.string, b)
 	return c
 }
