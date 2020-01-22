@@ -32,7 +32,7 @@ func (info TableInfo) Columns() (result []ColumnInfo) {
 
 		result = append(result,
 			ColumnInfo{
-				strings.ToLower(field.Name),
+				field.Name,
 				reflect.Zero(field.Type).Interface().(Type).String(),
 				strings.Split(constraints, ","),
 			})

@@ -33,16 +33,6 @@ func (t NewType) Type() NewType {
 	return t
 }
 
-var star = starType{NewType{"*"}}
-
-type starType struct {
-	NewType
-}
-
-func (starType) String() string {
-	return "*"
-}
-
 //Int is a sql 'int'.
 type Int struct {
 	NewType
@@ -63,7 +53,7 @@ func (i Int) Value(v int) Value {
 //Equals returns an equality condition on this column.
 func (i Int) Equals(b int) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", i.string, b)
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(i.string), b)
 	return c
 }
 
@@ -93,7 +83,7 @@ func (s String) Orderable() string {
 //Equals returns an equality condition on this column.
 func (s String) Equals(b string) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", s.string, c.value(b))
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(s.string), c.value(b))
 	return c
 }
 
@@ -122,7 +112,7 @@ func (t Text) Orderable() string {
 //Equals returns an equality condition on this column.
 func (t Text) Equals(b string) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", t.string, c.value(b))
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(t.string), c.value(b))
 	return c
 }
 
@@ -151,7 +141,7 @@ func (b Boolean) Orderable() string {
 //Equals returns an equality condition on this column.
 func (b Boolean) Equals(v bool) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", b.string, c.value(v))
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(b.string), c.value(v))
 	return c
 }
 
@@ -167,7 +157,7 @@ func (Serial) String() string {
 //Equals returns an equality condition on this column.
 func (s Serial) Equals(b int) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", s.string, b)
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(s.string), b)
 	return c
 }
 
@@ -191,6 +181,6 @@ func (t Timestamp) Value(v time.Time) Value {
 //Equals returns an equality condition on this column.
 func (t Timestamp) Equals(b time.Time) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v", t.string, b)
+	fmt.Fprintf(&c, "%v=%v", strconv.Quote(t.string), b)
 	return c
 }

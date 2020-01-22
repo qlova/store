@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"errors"
 	"reflect"
-	"strings"
 )
 
 //Result is a query result.
@@ -25,6 +24,9 @@ func (result Result) Query() Query {
 
 //Scan is like database/sql.Rows.Scan except it automatically calls database/sql.Rows.Next
 func (result Result) Scan(values ...interface{}) error {
+	if result.error != nil {
+		return result.error
+	}
 	result.Rows.Next()
 	return result.Rows.Scan(values...)
 }
@@ -59,7 +61,7 @@ func (result Result) Read(slice interface{}) (int, error) {
 		var fields = make([]interface{}, len(columns))
 		for j, column := range columns {
 			for k := 0; k < index.NumField(); k++ {
-				if strings.ToLower(T.Field(k).Name) == column {
+				if T.Field(k).Name == column {
 					fields[j] = index.Field(k).Addr().Interface()
 				}
 			}
