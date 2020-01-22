@@ -68,6 +68,12 @@ func (q Query) Where(condition Condition) Query {
 	return q
 }
 
+//Limit places a limit on the number of results.
+func (q Query) Limit(n int) Query {
+	fmt.Fprintf(q, "LIMIT %v", n)
+	return q
+}
+
 //Orderable is an orderable column.
 type Orderable interface {
 	Orderable() string
