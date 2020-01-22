@@ -51,7 +51,7 @@ func (result Result) Read(slice interface{}) (int, error) {
 	var T = reflect.TypeOf(slice).Elem()
 
 	for i := 0; i < length; i++ {
-		if !result.Next() {
+		if !result.Rows.Next() {
 			return i, result.Err()
 		}
 
@@ -65,7 +65,7 @@ func (result Result) Read(slice interface{}) (int, error) {
 			}
 		}
 
-		err := result.Scan(fields...)
+		err := result.Rows.Scan(fields...)
 		if err != nil {
 			return i, err
 		}
