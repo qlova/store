@@ -40,6 +40,7 @@ func (c Condition) And(other Condition) Condition {
 	r.Write(c.Bytes())
 	r.WriteString(" AND ")
 	r.Write(other.Bytes())
+	r.args = c.args
 	return r
 }
 
@@ -49,6 +50,7 @@ func (c Condition) Or(other Condition) Condition {
 	r.Write(c.Bytes())
 	r.WriteString(" Or ")
 	r.Write(other.Bytes())
+	r.args = c.args
 	return r
 }
 
@@ -57,5 +59,6 @@ func (c Condition) Not() Condition {
 	var r Condition
 	r.WriteString("NOT ")
 	r.Write(c.Bytes())
+	r.args = c.args
 	return r
 }
