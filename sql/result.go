@@ -61,6 +61,14 @@ func (result Result) Read(slice interface{}) (int, error) {
 		var fields = make([]interface{}, len(columns))
 		for j, column := range columns {
 			for k := 0; k < index.NumField(); k++ {
+
+				//Insert a version of the sql schema.
+				if T.Field(k).Name == "SQL" {
+					if t, ok := typeCache[index.Field(k).Addr().Type()]; ok {
+						index.Field(k).Set(t.Elem())
+					}
+				}
+
 				if T.Field(k).Name == column {
 					fields[j] = index.Field(k).Addr().Interface()
 				}

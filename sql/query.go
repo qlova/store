@@ -7,6 +7,8 @@ import (
 	"strings"
 )
 
+const Debug = false
+
 //Query is a sql query.
 type Query struct {
 	*query
@@ -40,6 +42,11 @@ func (db Database) QueryError(msg string) Query {
 
 //Do executes the query.
 func (q Query) Do() Result {
+
+	if Debug {
+		fmt.Println(q.Buffer.String())
+	}
+
 	if q.error != nil {
 		return Result{error: q.error}
 	}

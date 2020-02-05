@@ -23,10 +23,14 @@ func (table *NewTable) Table() *NewTable {
 	return table
 }
 
+var typeCache = make(map[reflect.Type]reflect.Value)
+
 func (table *NewTable) set(db Database, name string, structure Table) {
 	table.db = db
 	table.name = name
 	table.structure = structure
+
+	typeCache[reflect.TypeOf(structure)] = reflect.ValueOf(structure)
 }
 
 //Insert inserts a struct into this table.
@@ -109,6 +113,7 @@ func (table *NewTable) Update(structure interface{}) Query {
 			query.WriteByte(',')
 		}
 	}
+	query.WriteByte('\n')
 
 	return query
 }

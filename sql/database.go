@@ -19,8 +19,12 @@ func (db Database) EnsureTable(table Table) error {
 		return err
 	}
 
-	//Blank selection to retrieve columns.
-	result := table.Table().Select().Where(False).Do()
+	var query = db.NewQuery()
+	fmt.Fprintf(query, `select * from "%v"`, table.Table().name)
+	result := query.Do()
+	if err := result.Error(); err != nil {
+		return err
+	}
 	if err := result.Error(); err != nil {
 		return err
 	}
@@ -36,7 +40,7 @@ func (db Database) EnsureTable(table Table) error {
 	}
 
 	//Query existing constraints.
-	var query = db.NewQuery()
+	query = db.NewQuery()
 	fmt.Fprintf(query, `select 
 		INFORMATION_SCHEMA.constraint_column_usage.column_name,
 		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_type, 
@@ -76,7 +80,9 @@ func (db Database) EnsureTable(table Table) error {
 		return result.Err()
 	}
 
-	fmt.Println(ExistingConstraints)
+	if Debug {
+		fmt.Println(ExistingConstraints)
+	}
 
 	TargetColumns := TableInfo{table}.Columns()
 
