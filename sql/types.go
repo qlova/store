@@ -57,6 +57,13 @@ func (i Int) Equals(b int) Condition {
 	return c
 }
 
+//NotEquals returns an equality condition on this column.
+func (i Int) NotEquals(b int) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v!=%v", strconv.Quote(i.string), b)
+	return c
+}
+
 //String is a sql 'varchar(255)'
 type String struct {
 	NewType
@@ -87,6 +94,20 @@ func (s String) Equals(b string) Condition {
 	return c
 }
 
+//NotEquals returns an equality condition on this column.
+func (s String) NotEquals(b string) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v!=%v ", strconv.Quote(s.string), c.value(b))
+	return c
+}
+
+//NotNull returns a null condition on this column.
+func (s String) NotNull() Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v IS NOT NULL ", strconv.Quote(s.string))
+	return c
+}
+
 //Text is an sql 'text'
 type Text struct {
 	NewType
@@ -113,6 +134,20 @@ func (t Text) Orderable() string {
 func (t Text) Equals(b string) Condition {
 	var c Condition
 	fmt.Fprintf(&c, "%v=%v ", strconv.Quote(t.string), c.value(b))
+	return c
+}
+
+//NotNull returns a null condition on this column.
+func (t Text) NotNull() Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v IS NOT NULL ", strconv.Quote(t.string))
+	return c
+}
+
+//NotEquals returns an equality condition on this column.
+func (t Text) NotEquals(b string) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v!=%v ", strconv.Quote(t.string), c.value(b))
 	return c
 }
 
