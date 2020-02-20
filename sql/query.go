@@ -2,8 +2,10 @@ package sql
 
 import (
 	"bytes"
+	"database/sql"
 	"errors"
 	"fmt"
+	"runtime"
 	"strings"
 )
 
@@ -50,6 +52,11 @@ func (q Query) Do() Result {
 	}
 
 	result, err := q.Query(q.Buffer.String(), q.args...)
+
+	runtime.SetFinalizer(result, func(rows *sql.Rows) {
+		rows.Close()
+	})
+
 	return Result{q, result, err}
 }
 
