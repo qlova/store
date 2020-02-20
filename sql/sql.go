@@ -5,6 +5,8 @@ import (
 	"strings"
 )
 
+const Debug = true
+
 //Connection is a interface to an sql.DB
 type Connection struct {
 	*sql.DB

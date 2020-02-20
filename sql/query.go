@@ -7,8 +7,6 @@ import (
 	"strings"
 )
 
-const Debug = false
-
 //Query is a sql query.
 type Query struct {
 	*query
