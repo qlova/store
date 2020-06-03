@@ -1,14 +1,14 @@
 package sql
 
-import (
-	"errors"
-	"fmt"
-	"reflect"
-	"strings"
-)
+func (db Database) OrderBy(column HasColumn) *Query {
+	var q Query
+	q.WriteString(`ORDER BY`)
+	q.WriteColumn(column)
+	return &q
+}
 
 //CreateTable creates the given table.
-func (db Database) CreateTable(table Table) Query {
+/*func (db Database) CreateTable(table Table) Query {
 	return db.createTable(table, "CREATE TABLE")
 }
 
@@ -41,16 +41,16 @@ func (db Database) EnsureTable(table Table) error {
 
 	//Query existing constraints.
 	query = db.NewQuery()
-	fmt.Fprintf(query, `select 
+	fmt.Fprintf(query, `select
 		INFORMATION_SCHEMA.constraint_column_usage.column_name,
-		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_type, 
+		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_type,
 		INFORMATION_SCHEMA.CHECK_CONSTRAINTS.check_clause
 		from INFORMATION_SCHEMA.TABLE_CONSTRAINTS
-		full outer join INFORMATION_SCHEMA.CHECK_CONSTRAINTS on                                                                                                          
+		full outer join INFORMATION_SCHEMA.CHECK_CONSTRAINTS on
 		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_name=INFORMATION_SCHEMA.CHECK_CONSTRAINTS.constraint_name
-		full outer join INFORMATION_SCHEMA.key_column_usage on                                                                                                                       
+		full outer join INFORMATION_SCHEMA.key_column_usage on
 		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_name=INFORMATION_SCHEMA.key_column_usage.constraint_name
-		full outer join INFORMATION_SCHEMA.constraint_column_usage on 
+		full outer join INFORMATION_SCHEMA.constraint_column_usage on
 		INFORMATION_SCHEMA.TABLE_CONSTRAINTS.constraint_name=INFORMATION_SCHEMA.constraint_column_usage.constraint_name
 		where INFORMATION_SCHEMA.TABLE_CONSTRAINTS.table_name='%v';
 	`, table.Table().name)
@@ -109,8 +109,10 @@ func (db Database) EnsureTable(table Table) error {
 			continue
 		}
 
+		fmt.Println(target.Datatype, target.Constraints)
+
 		var query = db.NewQuery()
-		fmt.Fprintf(query, `ALTER TABLE "%v"`+"\n"+`ADD "%v" %v %v`, table.Table().name, target.Name, target.Datatype, strings.Join(target.Constraints, " "))
+		fmt.Fprintf(query, `ALTER TABLE "%v"`+"\n"+`ADD "%v" %v %v`+"\n"+"DEFAULT %v", table.Table().name, target.Name, target.Datatype, strings.Join(target.Constraints, " "), target.Default)
 		result := query.Do()
 		if err := result.Error(); err != nil {
 			return err
@@ -158,3 +160,4 @@ func (db Database) createTable(table Table, header string) Query {
 
 	return query
 }
+*/

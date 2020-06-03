@@ -1,13 +1,7 @@
 package sql
 
-import (
-	"database/sql"
-	"errors"
-	"reflect"
-)
-
 //Result is a query result.
-type Result struct {
+/*type Result struct {
 	q Query
 	*sql.Rows
 	error error
@@ -82,4 +76,4 @@ func (result Result) Read(slice interface{}) (int, error) {
 	}
 
 	return length, nil
-}
+}*/

@@ -1,7 +1,7 @@
 package sql
 
 //Values is a collection of SQL values.
-type Values []Value
+/*type Values []Value
 
 //Value is a SQL value packed and ready for a query.
 type Value struct {
@@ -19,4 +19,4 @@ func (value Value) get(q Query) string {
 		return q.value(value.arg)
 	}
 	return value.value
-}
+}*/

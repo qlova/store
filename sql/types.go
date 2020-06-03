@@ -1,13 +1,132 @@
 package sql
 
-import (
-	"fmt"
-	"strconv"
-	"time"
-)
+//Type is an internal SQL type.
+type Type string
+
+//HasType is anything that has a Type.
+type HasType interface {
+	GetType() Type
+}
+
+//GetType implements HasType
+func (t Type) GetType() Type {
+	return t
+}
+
+//Column is the name of a column within a database table.
+type Column struct {
+	Table
+	Name string
+}
+
+//HasColumn is anything that has an embedded Column.
+type HasColumn interface {
+	GetColumn() Column
+}
+
+type settableColumn interface {
+	setColumn(Column)
+}
+
+//GetColumn implements HasColumn
+func (c Column) GetColumn() Column {
+	return c
+}
+
+//setColumn implements HasColumn
+func (c *Column) setColumn(to Column) {
+	*c = to
+}
+
+type Value interface {
+	HasType
+	HasColumn
+	Interface() interface{}
+}
+
+//Int is an SQL representation of a Go int.
+type Int struct {
+	Column
+	int
+}
+
+func NewInt(i int) Int {
+	return Int{
+		int: i,
+	}
+}
+
+//Set the Int to the given int value.
+func (i *Int) Set(v int) {
+	i.int = v
+}
+
+//Get the Int's int value.
+func (i Int) Get() int {
+	return i.int
+}
+
+//Interface gets the Int's int value as an interface.
+func (i Int) Interface() interface{} {
+	return i.int
+}
+
+//GetType implements AnyType.
+func (Int) GetType() Type {
+	return "int"
+}
+
+//String is an SQL representation of a Go string.
+type String struct {
+	Column
+	string
+}
+
+func NewString(s string) String {
+	return String{
+		string: s,
+	}
+}
+
+//Set the String to the given string value.
+func (s *String) Set(v string) {
+	s.string = v
+}
+
+//Get the String's string value.
+func (s String) Get() string {
+	return s.string
+}
+
+func (s String) Equals(literal string) Condition {
+	var c Condition
+	c.WriteByte('"')
+	c.WriteString(s.Column.Name)
+	c.WriteByte('"')
+	c.WriteByte('=')
+	c.WriteString(c.value(literal))
+	return c
+}
+
+func (s String) To(literal string) Update {
+	return Update{
+		Column: s.Column,
+		Value:  literal,
+	}
+}
+
+//Interface gets the Int's int value as an interface.
+func (s String) Interface() interface{} {
+	return s.string
+}
+
+//GetType implements AnyType.
+func (String) GetType() Type {
+	return "text"
+}
 
 //Column is a sql column.
-type Column interface {
+/*type Column interface {
 	Type
 }
 
@@ -16,6 +135,7 @@ type Type interface {
 	Type() NewType
 	Name() string
 	String() string
+	Default() string
 }
 
 //NewType can be used as an embedding to create new types.
@@ -26,6 +146,19 @@ type NewType struct {
 //Name returns the name of the Entry.
 func (t NewType) Name() string {
 	return t.string
+}
+
+//Null a null value.
+func (t NewType) Null() Value {
+	return Value{
+		key:   t.string,
+		value: "NULL",
+	}
+}
+
+//Default value.
+func (t NewType) Default() string {
+	return "NULL"
 }
 
 //Type is
@@ -87,6 +220,11 @@ func (s String) Orderable() string {
 	return s.string
 }
 
+//Default string.
+func (s String) Default() string {
+	return `''`
+}
+
 //Equals returns an equality condition on this column.
 func (s String) Equals(b string) Condition {
 	var c Condition
@@ -125,6 +263,11 @@ func (t Text) Value(v string) Value {
 	}
 }
 
+//Default string.
+func (t Text) Default() string {
+	return `''`
+}
+
 //Orderable strings are orderable.
 func (t Text) Orderable() string {
 	return t.string
@@ -151,6 +294,13 @@ func (t Text) NotEquals(b string) Condition {
 	return c
 }
 
+//Like returns an equality condition on this column.
+func (t Text) Like(b string) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v LIKE %v ", strconv.Quote(t.string), c.value(b))
+	return c
+}
+
 //Boolean is an sql 'boolean'
 type Boolean struct {
 	NewType
@@ -158,6 +308,10 @@ type Boolean struct {
 
 func (Boolean) String() string {
 	return "boolean"
+}
+
+func (Boolean) Default() string {
+	return "FALSE"
 }
 
 //Value returns the string as a value.
@@ -176,7 +330,11 @@ func (b Boolean) Orderable() string {
 //Equals returns an equality condition on this column.
 func (b Boolean) Equals(v bool) Condition {
 	var c Condition
-	fmt.Fprintf(&c, "%v=%v ", strconv.Quote(b.string), c.value(v))
+	if v {
+		fmt.Fprintf(&c, "%v=TRUE ", strconv.Quote(b.string))
+	} else {
+		fmt.Fprintf(&c, "%v=FALSE ", strconv.Quote(b.string))
+	}
 	return c
 }
 
@@ -193,6 +351,13 @@ func (Serial) String() string {
 func (s Serial) Equals(b int) Condition {
 	var c Condition
 	fmt.Fprintf(&c, "%v=%v ", strconv.Quote(s.string), b)
+	return c
+}
+
+//NotEquals returns an inequality condition on this column.
+func (s Serial) NotEquals(b int) Condition {
+	var c Condition
+	fmt.Fprintf(&c, "%v!=%v ", strconv.Quote(s.string), b)
 	return c
 }
 
@@ -218,4 +383,4 @@ func (t Timestamp) Equals(b time.Time) Condition {
 	var c Condition
 	fmt.Fprintf(&c, "%v=%v ", strconv.Quote(t.string), b)
 	return c
-}
+}*/

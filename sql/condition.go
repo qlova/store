@@ -1,12 +1,21 @@
 package sql
 
 import (
-	"bytes"
-	"fmt"
+	"strings"
 )
 
-//Condition can be used in where queries.
 type Condition struct {
+	strings.Builder
+	Values []interface{}
+}
+
+func (c *Condition) value(i interface{}) string {
+	c.Values = append(c.Values, i)
+	return "$%v"
+}
+
+//Condition can be used in where queries.
+/*type Condition struct {
 	bytes.Buffer
 	args []interface{}
 }
@@ -39,8 +48,14 @@ func (c Condition) And(other Condition) Condition {
 	var r Condition
 	r.Write(c.Bytes())
 	r.WriteString(" AND ")
-	r.Write(other.Bytes())
 	r.args = c.args
+
+	var b = other.Bytes()
+	for i, arg := range other.args {
+		b = bytes.Replace(b, []byte(fmt.Sprintf("$%v", i+1)), []byte(r.value(arg)), 1)
+	}
+	r.Write(b)
+
 	return r
 }
 
@@ -49,8 +64,14 @@ func (c Condition) Or(other Condition) Condition {
 	var r Condition
 	r.Write(c.Bytes())
 	r.WriteString(" Or ")
-	r.Write(other.Bytes())
 	r.args = c.args
+
+	var b = other.Bytes()
+	for i, arg := range other.args {
+		b = bytes.Replace(b, []byte(fmt.Sprintf("$%v", i+1)), []byte(r.value(arg)), 1)
+	}
+	r.Write(b)
+
 	return r
 }
 
@@ -61,4 +82,4 @@ func (c Condition) Not() Condition {
 	r.Write(c.Bytes())
 	r.args = c.args
 	return r
-}
+}*/

@@ -1,31 +1,27 @@
 package sql
 
 import (
+	"context"
 	"database/sql"
-	"strings"
 )
 
-const Debug = true
-
-//Connection is a interface to an sql.DB
-type Connection struct {
-	*sql.DB
-}
+const Debug = false
 
 //Open returns a new database connection.
-func Open(driver string, args string) (Connection, error) {
+func Open(driver string, args string) (Database, error) {
 	db, err := sql.Open(driver, args)
-	return Connection{db}, err
+
+	return Database{db, context.Background()}, err
 }
 
 //Database is a sql database name.
 type Database struct {
-	Connection
-	name string
+	*sql.DB
+	context.Context
 }
 
 //CreateDatabase creates and returns a database.
-func (conn Connection) CreateDatabase(name string) (Database, error) {
+/*func (conn Connection) CreateDatabase(name string) (Database, error) {
 	_, err := conn.Exec("CREATE DATABASE " + name + ";")
 	return Database{conn, name}, err
 }
@@ -42,4 +38,4 @@ func (conn Connection) CreateDatabaseIfNotExists(name string) (Database, error) 
 		err = nil
 	}
 	return Database{conn, name}, err
-}
+}*/

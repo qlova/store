@@ -1,13 +1,8 @@
 package sql
 
-import (
-	"reflect"
-	"strings"
-)
-
 //TableInfo is a wrapper around the Table interface that is a useful helper for getting
 //metadata about the table.
-type TableInfo struct {
+/*type TableInfo struct {
 	Table
 }
 
@@ -34,6 +29,7 @@ func (info TableInfo) Columns() (result []ColumnInfo) {
 			ColumnInfo{
 				field.Name,
 				reflect.Zero(field.Type).Interface().(Type).String(),
+				reflect.Zero(field.Type).Interface().(Type).Default(),
 				strings.Split(constraints, ","),
 			})
 	}
@@ -44,5 +40,6 @@ func (info TableInfo) Columns() (result []ColumnInfo) {
 //ColumnInfo provides information about a given column.
 type ColumnInfo struct {
 	Name, Datatype string
+	Default        string
 	Constraints    []string
-}
+}*/

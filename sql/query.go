@@ -1,16 +1,58 @@
 package sql
 
 import (
-	"bytes"
-	"database/sql"
-	"errors"
 	"fmt"
-	"runtime"
+	"strconv"
 	"strings"
 )
 
-//Query is a sql query.
 type Query struct {
+	db Database
+	strings.Builder
+	Values []interface{}
+}
+
+func (db Database) NewQuery() *Query {
+	return &Query{db: db}
+}
+
+func (db Database) Where(condition Condition) *Query {
+	var q Query
+	q.db = db
+	q.WriteString(`WHERE `)
+	q.WriteCondition(condition)
+	return &q
+}
+
+func (q *Query) value(i interface{}) string {
+	q.Values = append(q.Values, i)
+	return "$%v"
+}
+
+func (q *Query) String() string {
+	var indicies = make([]interface{}, len(q.Values))
+	for i := range q.Values {
+		indicies[i] = i + 1
+	}
+	return fmt.Sprintf(q.Builder.String(), indicies...)
+}
+
+func (q *Query) WriteCondition(condition Condition) {
+	q.WriteString(condition.Builder.String())
+	q.Values = append(q.Values, condition.Values...)
+}
+
+func (q *Query) WriteQuery(other *Query) {
+	q.WriteString(other.Builder.String())
+	q.Values = append(q.Values, other.Values...)
+}
+
+func (q *Query) WriteColumn(column HasColumn) {
+	q.WriteString(strconv.Quote(string(column.GetColumn().Name)))
+}
+
+//Query is a sql query.
+/*type Query struct {
 	*query
 }
 
@@ -53,9 +95,11 @@ func (q Query) Do() Result {
 
 	result, err := q.Query(q.Buffer.String(), q.args...)
 
-	runtime.SetFinalizer(result, func(rows *sql.Rows) {
-		rows.Close()
-	})
+	if result != nil {
+		runtime.SetFinalizer(result, func(rows *sql.Rows) {
+			rows.Close()
+		})
+	}
 
 	return Result{q, result, err}
 }
@@ -97,11 +141,11 @@ func (q Query) OrderBy(orders ...Orderable) Query {
 	if len(orders) == 0 {
 		return q
 	}
-	fmt.Fprint(q, orders[0].Orderable())
+	fmt.Fprintf(q, `"%v"`, orders[0].Orderable())
 
 	for _, order := range orders[1:] {
-		fmt.Fprintf(q, "%v,", order.Orderable())
+		fmt.Fprintf(q, `, "%v"`, order.Orderable())
 	}
 
 	return q
-}
+}*/
