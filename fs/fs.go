@@ -98,6 +98,11 @@ func (d Directory) File(name string) File {
 	return File{d.Data(name)}
 }
 
+//Goto goes to the given path.
+func (d Directory) Goto(path Path) Directory {
+	return Directory{d.Node.Goto(path)}
+}
+
 //Root is a file-system root.
 type Root struct {
 	Directory
