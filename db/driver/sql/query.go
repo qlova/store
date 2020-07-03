@@ -16,6 +16,8 @@ type Query struct {
 
 	strings.Builder
 	Values []interface{}
+
+	sortby []db.Column
 }
 
 type Error struct {
@@ -29,7 +31,7 @@ const Debug = true
 
 func (err Error) Error() string {
 	if Debug {
-		return err.Internal.Error() + err.Query
+		return err.Internal.Error() + " " + err.Query
 	}
 	return err.Internal.Error()
 }
@@ -91,6 +93,8 @@ func (q *Query) WriteCondition(condition db.Condition) {
 		q.WriteString("!=")
 	case db.Contains:
 		q.WriteString(" LIKE ")
+	case db.StartsWith:
+		q.WriteString(" LIKE ")
 	default:
 		q.WriteString("[sql: unsupported operator]")
 	}
@@ -98,6 +102,10 @@ func (q *Query) WriteCondition(condition db.Condition) {
 	if condition.Operator == db.Contains {
 		condition.Value = "%" + condition.Value.(string) + "%"
 	}
+	if condition.Operator == db.StartsWith {
+		condition.Value = condition.Value.(string) + "%"
+	}
+
 	q.WriteString("$%v")
 
 	q.Values = append(q.Values, condition.Value)
@@ -155,21 +163,17 @@ func (q *Query) Where(condition db.Condition, conditions ...db.Condition) db.Que
 	return q
 }
 
-func (q *Query) SortBy(db.Column, ...db.Column) db.Query {
-	panic("not implemented")
-}
-
 func (q *Query) Link(db.Linker, ...db.Linker) db.Query {
 	panic("not implemented")
 }
 
-func (q *Query) Slice(index, length int) db.Slicer {
+func (q *Query) Slice(index, length int, values ...db.Value) db.Slicer {
 	q.WriteString(" LIMIT ")
 	q.WriteString(strconv.Itoa(length))
 	q.WriteString(" OFFSET ")
 	q.WriteString(strconv.Itoa(index))
 
-	return slicer{length, nil, *q}
+	return slicer{length, nil, values, *q}
 }
 
 //Get implements db.Query.Get
@@ -199,6 +203,53 @@ func (q *Query) Get(value db.MutableValue, more ...db.MutableValue) error {
 	}
 
 	return head.Error(row.Scan(pointers...))
+}
+
+//Count implements db.Query.Count
+func (q *Query) Count(v db.Value) (int, error) {
+	var head Query
+	head.WriteString(`SELECT `)
+	head.WriteString(`COUNT(`)
+	head.WriteColumn(v.GetColumn())
+	head.WriteByte(')')
+
+	head.WriteString(` FROM "`)
+	head.WriteString(q.Table.Name)
+	head.WriteString(`" `)
+
+	head.WriteByte(' ')
+	head.WriteQuery(q)
+
+	row := q.Driver.DB.QueryRowContext(q.Driver.Context, head.String(), head.Values...)
+
+	var count int
+
+	err := row.Scan(&count)
+
+	return count, q.Error(err)
+}
+
+//Average implements db.Query.Average
+func (q *Query) Average(v db.Value) (float64, error) {
+	var head Query
+	head.WriteString(`SELECT `)
+	head.WriteString(`AVG(`)
+	head.WriteColumn(v.GetColumn())
+	head.WriteByte(')')
+
+	head.WriteString(` FROM "`)
+	head.WriteString(q.Table.Name)
+	head.WriteString(`" `)
+
+	head.WriteByte(' ')
+	head.WriteQuery(q)
+
+	row := q.Driver.DB.QueryRowContext(q.Driver.Context, head.String(), head.Values...)
+
+	var count float64
+
+	err := row.Scan(&count)
+	return count, q.Error(err)
 }
 
 //Read implements db.Query.Read
@@ -274,15 +325,27 @@ func (d Driver) SortBy(column db.Column, columns ...db.Column) db.Query {
 	q.Driver = d
 	q.Table = column.Table
 
-	q.WriteString("ORDER BY ")
-	q.WriteColumn(column)
-
-	for _, column := range columns {
-		q.WriteByte(',')
-		q.WriteColumn(column)
-	}
+	q.SortBy(column, columns...)
 
 	return &q
+}
+
+func (q *Query) SortBy(column db.Column, columns ...db.Column) db.Query {
+	q.WriteString(" ORDER BY ")
+	q.WriteColumn(column)
+	if column.SortMode == db.Decreasing {
+		q.WriteString(" DESC")
+	}
+
+	for _, val := range columns {
+		q.WriteByte(',')
+		q.WriteColumn(val.GetColumn())
+		if val.GetColumn().SortMode == db.Decreasing {
+			q.WriteString(" DESC")
+		}
+	}
+
+	return q
 }
 
 //Update implements db.Driver.Update

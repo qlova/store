@@ -7,6 +7,7 @@ const (
 	Equals Operator = iota
 	Contains
 	NotEquals
+	StartsWith
 )
 
 type Condition struct {
@@ -22,11 +23,6 @@ func Either(a, b Condition) Condition {
 	return a
 }
 
-type Slicer interface {
-	Columns(Column, ...Column) Slicer
-	Into(Connectable) error
-}
-
 type Querier interface {
 	Where(Condition, ...Condition) Query
 	SortBy(Column, ...Column) Query
@@ -35,7 +31,10 @@ type Querier interface {
 
 	Update(Update, ...Update) (int, error)
 
-	Slice(int, int) Slicer
+	Slice(int, int, ...Value) Slicer
+
+	Count(Value) (int, error)
+	Average(Value) (float64, error)
 }
 
 type Query interface {
