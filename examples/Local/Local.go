@@ -1,18 +1,18 @@
 package main
 
-import "fmt"
-import "github.com/qlova/store/in/os"
+import (
+	"log"
+
+	"github.com/qlova/store/fs/driver/os"
+)
 
 func main() {
-	var ConfigStore, err = os.Open("config")
+	configs, err := os.Open("config")
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatalln(err)
 	}
 
-	var Config = ConfigStore.Value("config.ini")
-
-	if err := Config.SetString("[INI]\n\ta = 1234\n"); err != nil {
-		fmt.Println(err)
+	if err := configs.File("config.ini").SetString("[INI]\n\ta = 1234\n"); err != nil {
+		log.Fatalln(err)
 	}
 }
