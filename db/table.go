@@ -27,9 +27,18 @@ type Table struct {
 	Connection Connection
 }
 
+type SortMode int
+
+const (
+	Increasing SortMode = iota
+	Decreasing
+)
+
 type Column struct {
 	Table
 	Name string
+
+	SortMode
 
 	Field      int16
 	references *Column
@@ -43,6 +52,15 @@ func (c Column) GetColumn() Column {
 
 func (c *Column) SetColumn(to Column) {
 	*c = to
+}
+
+func (c Column) Decreasing() Column {
+	c.SortMode = Decreasing
+	return c
+}
+
+func (c Column) FieldName() string {
+	return c.Name
 }
 
 type Update struct {

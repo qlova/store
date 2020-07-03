@@ -83,3 +83,11 @@ func (s String) Contains(val string) Condition {
 		Value:    val,
 	}
 }
+
+func (s String) StartsWith(val string) Condition {
+	return Condition{
+		Column:   s.Column,
+		Operator: StartsWith,
+		Value:    val,
+	}
+}

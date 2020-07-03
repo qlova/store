@@ -27,7 +27,15 @@ func Open(name db.Connection, driver, options string) error {
 	return nil
 }
 
-func (d Driver) Slice(index, length int) db.Slicer {
+func (d Driver) Slice(index, length int, values ...db.Value) db.Slicer {
+	panic("not implemented")
+}
+
+func (d Driver) Count(v db.Value) (int, error) {
+	panic("not implemented")
+}
+
+func (d Driver) Average(v db.Value) (float64, error) {
 	panic("not implemented")
 }
 

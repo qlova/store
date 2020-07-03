@@ -170,20 +170,3 @@ func Columns(row Row) []Column {
 
 	return result
 }
-
-func Slices(model Connectable, length int, columns ...Column) []reflect.Value {
-	var RowValue = reflect.ValueOf(model).Elem()
-
-	var result []reflect.Value
-
-	for _, col := range columns {
-		value, ok := RowValue.Field(int(col.Field)).Addr().Interface().(MutableValue)
-		if ok {
-			result = append(result, reflect.ValueOf(value.Slice(length)))
-		}
-	}
-
-	model.getModel().State.length = length
-
-	return result
-}
