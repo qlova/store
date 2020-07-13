@@ -49,14 +49,12 @@ func (d Driver) Insert(row db.Row, rows ...db.Row) error {
 
 	var q Query
 
-	q.WriteString(`INSERT INTO "`)
+	q.WriteString(`INSERT INTO `)
 	q.WriteString(insert.Table.Name)
-	q.WriteString(`" (`)
+	q.WriteString(` (`)
 
 	for i, column := range insert.Columns {
-		q.WriteByte('"')
 		q.WriteString(column.Name)
-		q.WriteByte('"')
 
 		if i < len(insert.Columns)-1 {
 			q.WriteByte(',')
@@ -87,17 +85,17 @@ func (d Driver) Link(link db.Linker, links ...db.Linker) db.Query {
 	q.Driver = d
 	q.Table = link.From.Table
 
-	q.WriteString(`INNER JOIN "`)
+	q.WriteString(`INNER JOIN `)
 	q.WriteString(link.To.Table.Name)
-	q.WriteString(`" ON "`)
+	q.WriteString(` ON `)
 	q.WriteString(link.From.Table.Name)
-	q.WriteString(`"."`)
+	q.WriteString(`.`)
 	q.WriteString(link.From.Name)
-	q.WriteString(`"="`)
+	q.WriteString(`=`)
 	q.WriteString(link.To.Table.Name)
-	q.WriteString(`"."`)
+	q.WriteString(`.`)
 	q.WriteString(link.To.Name)
-	q.WriteString(`" `)
+	q.WriteString(` `)
 
 	return &q
 }
@@ -109,12 +107,12 @@ func (d Driver) Read(interface{}, ...interface{}) (int, error) {
 
 //Delete implements db.Driver.Delete
 func (d Driver) Delete(table db.Table, tables ...db.Table) error {
-	_, err := d.DB.ExecContext(d.Context, `DROP TABLE "`+table.Name+`";`)
+	_, err := d.DB.ExecContext(d.Context, `DROP TABLE `+table.Name+`;`)
 	return err
 }
 
 //Truncate implements db.Driver.Truncate
 func (d Driver) Truncate(table db.Table, tables ...db.Table) error {
-	_, err := d.DB.ExecContext(d.Context, `TRUNCATE TABLE "`+table.Name+`";`)
+	_, err := d.DB.ExecContext(d.Context, `TRUNCATE TABLE `+table.Name+`;`)
 	return err
 }

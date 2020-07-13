@@ -39,9 +39,9 @@ func (slice slicer) MarshalJSON() ([]byte, error) {
 		head.WriteByte(',')
 		head.WriteColumn(col.GetColumn())
 	}
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(&q)
@@ -122,9 +122,9 @@ func (slice slicer) Into(model db.Connectable, extras ...db.Connectable) error {
 		head.WriteByte(',')
 		head.WriteColumn(col)
 	}
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(&q)
