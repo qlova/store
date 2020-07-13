@@ -57,20 +57,18 @@ func (q *Query) WriteQuery(other *Query) {
 
 //WriteColumn writes a Column to the Query.
 func (q *Query) WriteColumn(col db.Column) {
-	q.WriteByte('"')
+	switch col.Name {
+	case "end":
+		col.Name = strconv.Quote(col.Name)
+	}
 	q.WriteString(col.Table.Name)
-	q.WriteByte('"')
 	q.WriteByte('.')
-	q.WriteByte('"')
 	q.WriteString(col.Name)
-	q.WriteByte('"')
 }
 
 //WriteUpdate writes a db.Update to the Query.
 func (q *Query) WriteUpdate(update db.Update) {
-	q.WriteByte('"')
 	q.WriteString(update.Column.Name)
-	q.WriteByte('"')
 	q.WriteByte('=')
 	q.WriteString("$%v")
 
@@ -82,9 +80,7 @@ func (q *Query) WriteCondition(condition db.Condition) {
 	if condition.Or != nil {
 		q.WriteByte('(')
 	}
-	q.WriteByte('"')
 	q.WriteString(condition.Column.Name)
-	q.WriteByte('"')
 
 	switch condition.Operator {
 	case db.Equals:
@@ -128,9 +124,9 @@ func (q *Query) String() string {
 //Delete implements db.Query.Delete
 func (q *Query) Delete() (int, error) {
 	var head Query
-	head.WriteString(`DELETE FROM "`)
+	head.WriteString(`DELETE FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteQuery(q)
 
@@ -185,9 +181,9 @@ func (q *Query) Get(value db.MutableValue, more ...db.MutableValue) error {
 		head.WriteByte(',')
 		head.WriteColumn(val.GetColumn())
 	}
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(q)
@@ -213,9 +209,9 @@ func (q *Query) Count(v db.Value) (int, error) {
 	head.WriteColumn(v.GetColumn())
 	head.WriteByte(')')
 
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(q)
@@ -237,9 +233,9 @@ func (q *Query) Average(v db.Value) (float64, error) {
 	head.WriteColumn(v.GetColumn())
 	head.WriteByte(')')
 
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(q)
@@ -264,9 +260,9 @@ func (q *Query) Read(value db.Connectable) error {
 		head.WriteColumn(col)
 	}
 
-	head.WriteString(` FROM "`)
+	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(q)
@@ -288,9 +284,9 @@ func (q *Query) Read(value db.Connectable) error {
 //Update implements db.Driver.Update
 func (q *Query) Update(update db.Update, updates ...db.Update) (int, error) {
 	var head Query
-	head.WriteString(`UPDATE "`)
+	head.WriteString(`UPDATE `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(`" `)
+	head.WriteString(` `)
 
 	head.WriteString("SET ")
 	head.WriteUpdate(update)

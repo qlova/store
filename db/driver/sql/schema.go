@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/qlova/store/db"
@@ -55,9 +56,9 @@ func (d Driver) Verify(schema db.Schema) error {
 	var q Query
 	q.Driver = d
 
-	q.WriteString(`CREATE TABLE IF NOT EXISTS "`)
+	q.WriteString(`CREATE TABLE IF NOT EXISTS `)
 	q.WriteString(schema.Table.Name)
-	q.WriteString(`" (`)
+	q.WriteString(` (`)
 	for i, val := range schema.Columns {
 		col := val.GetColumn()
 
@@ -66,7 +67,13 @@ func (d Driver) Verify(schema db.Schema) error {
 			return err
 		}
 
-		q.WriteString(`"` + col.Name + `" `)
+		switch strings.ToLower(col.Name) {
+		case "end":
+			col.Name = strconv.Quote(col.Name)
+		}
+
+		q.WriteString(col.Name)
+		q.WriteByte(' ')
 		q.WriteString(t)
 		q.WriteString(" NOT NULL")
 
@@ -82,7 +89,7 @@ func (d Driver) Verify(schema db.Schema) error {
 	}
 
 	q.Builder = strings.Builder{}
-	fmt.Fprintf(&q, `select * from "%v" LIMIT 1`, schema.Table.Name)
+	fmt.Fprintf(&q, `select * from %v LIMIT 1`, schema.Table.Name)
 
 	rows, err := q.Driver.DB.QueryContext(q.Driver.Context, q.String())
 	if err != nil {
@@ -146,7 +153,7 @@ func (d Driver) Verify(schema db.Schema) error {
 	for _, value := range schema.Columns {
 		var target = value.GetColumn()
 
-		if _, ok := ExistingColumns[target.Name]; ok {
+		if _, ok := ExistingColumns[strings.ToLower(target.Name)]; ok {
 
 			/*for _, constraint := range target.Constraints {
 				constraint = strings.ToUpper(strings.TrimSpace(constraint))
@@ -172,7 +179,7 @@ func (d Driver) Verify(schema db.Schema) error {
 
 		q.Builder = strings.Builder{}
 
-		fmt.Fprintf(&q, `ALTER TABLE "%v"`+"\n"+`ADD "%v" %v %v`+"\n"+"DEFAULT %v", schema.Table.Name, target.Name, t, "NOT NULL", defaultVal)
+		fmt.Fprintf(&q, `ALTER TABLE %v`+"\n"+`ADD %v %v %v`+"\n"+"DEFAULT %v", schema.Table.Name, target.Name, t, "NOT NULL", defaultVal)
 
 		_, err = q.Driver.DB.ExecContext(q.Driver.Context, q.String())
 		if err != nil {
