@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strconv"
+	"strings"
 
 	"github.com/qlova/store/db"
 )
@@ -54,6 +55,10 @@ func (d Driver) Insert(row db.Row, rows ...db.Row) error {
 	q.WriteString(` (`)
 
 	for i, column := range insert.Columns {
+		switch strings.ToLower(column.Name) {
+		case "end":
+			column.Name = strings.ToLower(strconv.Quote(column.Name))
+		}
 		q.WriteString(column.Name)
 
 		if i < len(insert.Columns)-1 {

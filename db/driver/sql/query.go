@@ -57,10 +57,11 @@ func (q *Query) WriteQuery(other *Query) {
 
 //WriteColumn writes a Column to the Query.
 func (q *Query) WriteColumn(col db.Column) {
-	switch col.Name {
+	switch strings.ToLower(col.Name) {
 	case "end":
-		col.Name = strconv.Quote(col.Name)
+		col.Name = strings.ToLower(strconv.Quote(col.Name))
 	}
+
 	q.WriteString(col.Table.Name)
 	q.WriteByte('.')
 	q.WriteString(col.Name)
@@ -68,6 +69,11 @@ func (q *Query) WriteColumn(col db.Column) {
 
 //WriteUpdate writes a db.Update to the Query.
 func (q *Query) WriteUpdate(update db.Update) {
+	switch strings.ToLower(update.Column.Name) {
+	case "end":
+		update.Column.Name = strings.ToLower(strconv.Quote(update.Column.Name))
+	}
+
 	q.WriteString(update.Column.Name)
 	q.WriteByte('=')
 	q.WriteString("$%v")
@@ -80,7 +86,8 @@ func (q *Query) WriteCondition(condition db.Condition) {
 	if condition.Or != nil {
 		q.WriteByte('(')
 	}
-	q.WriteString(condition.Column.Name)
+
+	q.WriteColumn(condition.Column)
 
 	switch condition.Operator {
 	case db.Equals:
@@ -132,7 +139,7 @@ func (q *Query) Delete() (int, error) {
 
 	result, err := q.Driver.DB.ExecContext(q.Driver.Context, head.String(), head.Values...)
 	if err != nil {
-		return 0, q.Error(err)
+		return 0, head.Error(err)
 	}
 
 	number, err := result.RowsAffected()
@@ -183,7 +190,6 @@ func (q *Query) Get(value db.MutableValue, more ...db.MutableValue) error {
 	}
 	head.WriteString(` FROM `)
 	head.WriteString(q.Table.Name)
-	head.WriteString(` `)
 
 	head.WriteByte(' ')
 	head.WriteQuery(q)
@@ -302,7 +308,7 @@ func (q *Query) Update(update db.Update, updates ...db.Update) (int, error) {
 
 	result, err := q.Driver.DB.ExecContext(q.Driver.Context, head.String(), head.Values...)
 	if err != nil {
-		return 0, q.Error(err)
+		return 0, head.Error(err)
 	}
 
 	number, err := result.RowsAffected()
