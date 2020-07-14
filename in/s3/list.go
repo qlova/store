@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 //List is a list of folders and objects.

@@ -3,7 +3,7 @@ package os
 import (
 	"os"
 
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 var _ = store.Tree(Root{})

@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/qlova/store/db"
-	"github.com/qlova/store/db/driver/postgres"
+	"qlova.store/db"
+	"qlova.store/db/driver/postgres"
 )
 
 //Customer is the customers table

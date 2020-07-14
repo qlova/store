@@ -4,7 +4,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 var _ = store.Node(Folder{})

@@ -7,7 +7,7 @@ import (
 	"path"
 	"strconv"
 
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 //List is a list of folders and objects.
