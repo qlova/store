@@ -1,4 +1,4 @@
-module github.com/qlova/store
+module qlova.store
 
 go 1.12
 
