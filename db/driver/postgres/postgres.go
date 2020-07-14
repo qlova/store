@@ -2,8 +2,8 @@ package postgres
 
 import (
 	"github.com/lib/pq"
-	"github.com/qlova/store/db"
-	"github.com/qlova/store/db/driver/sql"
+	"qlova.store/db"
+	"qlova.store/db/driver/sql"
 )
 
 var _ = pq.Driver{}
