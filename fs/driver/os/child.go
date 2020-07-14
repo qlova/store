@@ -1,7 +1,7 @@
 package os
 
 import (
-	"github.com/qlova/store/fs"
+	"qlova.store/fs"
 )
 
 var _ fs.Child = child{}

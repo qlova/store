@@ -3,7 +3,7 @@ package os
 import (
 	"os"
 
-	"github.com/qlova/store/fs"
+	"qlova.store/fs"
 )
 
 var _ fs.Node = node{}

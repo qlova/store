@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/qlova/store/db"
+	"qlova.store/db"
 )
 
 //Driver implements db.Driver

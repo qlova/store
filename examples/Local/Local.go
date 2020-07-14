@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/qlova/store/fs/driver/os"
+	"qlova.store/fs/driver/os"
 )
 
 func main() {

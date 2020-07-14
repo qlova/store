@@ -4,7 +4,7 @@ import (
 	"io"
 	"path"
 
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 type keyInfo struct {

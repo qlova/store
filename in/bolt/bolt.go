@@ -2,7 +2,7 @@ package bolt
 
 import (
 	"github.com/boltdb/bolt"
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 //DB is the stored bolt.DB state for the types in this package.

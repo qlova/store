@@ -2,7 +2,7 @@ package bolt
 
 import (
 	"github.com/boltdb/bolt"
-	"github.com/qlova/store"
+	"qlova.store"
 )
 
 //Bucket is a bolt bucket.

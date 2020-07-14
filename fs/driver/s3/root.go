@@ -1,7 +1,7 @@
 package s3
 
 import (
-	"github.com/qlova/store/fs"
+	"qlova.store/fs"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"

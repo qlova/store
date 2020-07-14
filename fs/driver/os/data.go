@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/qlova/store/fs"
+	"qlova.store/fs"
 )
 
 var _ fs.Data = data{}

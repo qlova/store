@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/qlova/store/db"
+	"qlova.store/db"
 )
 
 //Slicer implements db.Slicer

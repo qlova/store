@@ -1,7 +1,7 @@
 package main
 
 import "fmt"
-import "github.com/qlova/store/in/bolt"
+import "qlova.store/in/bolt"
 
 func main() {
 	var ConfigStore, err = bolt.Open("bolt.db")

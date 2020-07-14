@@ -1,10 +1,10 @@
 package in
 
 import (
-	"github.com/qlova/store"
-	"github.com/qlova/store/in/bolt"
-	"github.com/qlova/store/in/os"
-	"github.com/qlova/store/in/s3"
+	"qlova.store"
+	"qlova.store/in/bolt"
+	"qlova.store/in/os"
+	"qlova.store/in/s3"
 )
 
 //Bolt opens the db file in your current directory.

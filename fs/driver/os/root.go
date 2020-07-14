@@ -3,7 +3,7 @@ package os
 import (
 	"os"
 
-	"github.com/qlova/store/fs"
+	"qlova.store/fs"
 )
 
 //Open opens the given local directory as a fs.Root

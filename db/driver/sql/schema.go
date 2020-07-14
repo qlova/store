@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/qlova/store/db"
+	"qlova.store/db"
 )
 
 //TypeOf returns the SQL type of the given db.Value.
