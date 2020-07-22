@@ -63,16 +63,27 @@ func register(model Connectable) error {
 		if setter, ok := value.Addr().Interface().(MutableValue); ok {
 			var col Column
 			var name = field.Name
+			var key bool
+
+			//The name can be overriden in the tag.
+			//Further tags include key and unique
 			if tag, ok := field.Tag.Lookup("db"); ok {
 				args := strings.Split(tag, ",")
 				if args[0] != "" {
 					name = args[0]
 				}
+				if len(args) > 0 {
+					if args[1] == "key" {
+						key = true
+					}
+				}
 			}
+
 			col = Column{
 				Name:  name,
 				Table: table,
 				Field: int16(i),
+				Key:   key,
 			}
 			setter.SetColumn(col)
 			columns = append(columns, value.Interface().(Value))
