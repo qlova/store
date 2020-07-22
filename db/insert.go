@@ -23,14 +23,17 @@ func (insert *Insertion) Row(row Row) error {
 		if ok {
 			insert.Columns = append(insert.Columns, value.GetColumn())
 
+			//Hacky feature that can automatically generate a UUID if it is tagged as a key.
 			if id, ok := value.(UUID); ok && id.UUID() == uuid.Nil {
-				id, err := uuid.NewRandom()
-				if err != nil {
-					return err
-				}
+				if id.Key {
+					id, err := uuid.NewRandom()
+					if err != nil {
+						return err
+					}
 
-				insert.Values = append(insert.Values, id)
-				continue
+					insert.Values = append(insert.Values, id)
+					continue
+				}
 			}
 
 			insert.Values = append(insert.Values, value.Interface())

@@ -43,6 +43,8 @@ type Column struct {
 	Field      int16
 	references *Column
 
+	Key bool
+
 	nullable, null bool
 }
 

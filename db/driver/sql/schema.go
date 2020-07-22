@@ -105,7 +105,7 @@ func (d Driver) Verify(schema db.Schema) error {
 
 	ExistingColumns := make(map[string]struct{}, len(columns))
 	for _, column := range columns {
-		ExistingColumns[column] = struct{}{}
+		ExistingColumns[strings.ToLower(column)] = struct{}{}
 	}
 
 	//Query existing constraints.

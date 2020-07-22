@@ -35,7 +35,7 @@ type Data interface {
 	io.WriterTo
 	http.Handler
 
-	//Return the path of this data.
+	//Return the path to this data.
 	Path() Path
 
 	//Stat returns info about the data.
@@ -64,7 +64,7 @@ func (f File) String() string {
 }
 
 //Node is the lowlevel interface required for Directories.
-//A node is a location in a tree, it doesn't have to exist.
+//A node is a location within a tree, it doesn't have to exist.
 type Node interface {
 	//Create this node and all parent nodes required for this node to exist.
 	Create() error

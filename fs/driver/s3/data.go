@@ -59,7 +59,7 @@ func (d data) WriteTo(writer io.Writer) (int64, error) {
 func (d data) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r,
 		fmt.Sprintf("https://%s.s3-%s.amazonaws.com/%s",
-			d.Bucket, d.Config.Region, d.Key), 303)
+			d.Bucket, *d.Config.Region, d.Key), 303)
 }
 
 //Delete implements fs.Data.Delete

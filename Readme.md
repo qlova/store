@@ -1,39 +1,45 @@
 # Qlovastore [![Godoc](https://godoc.org/github.com/qlova/store?status.svg)](https://godoc.org/github.com/qlova/store) [![Go Report Card](https://goreportcard.com/badge/github.com/qlova/store)](https://goreportcard.com/report/github.com/qlova/store)
 
-Qlovastore is a storage abstraction library for Go.  
-Both objects and values can be stored, where an object can have children and/or values.  
+Qlovastore is a storage abstraction library for Go. Dealing both with filesystem and database abstraction. qlova.store/fs and qlova.store/db respectively.
+The database package is still in an experimental state, the filesystem package is incomplete.
 
-**Backends:**  
+**File-system Drivers:**  
 
-* Amazon S3
-* BoltDB
-* Operating System
+* Amazon S3 (s3)
+* Operating System (os)
 
-**Example:**  
+**Database Drivers:**  
+
+* Postgres (postgres)
+
+**File-system Example:**  
 
 ```Go
 package main
 
-import "fmt"
-import "github.com/qlova/store/in/os"
+import (
+	"log"
+
+	"qlova.store/fs/driver/os"
+)
 
 func main() {
-    var store, err = os.Open("store")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
+    //Open a new fs.Root at directory called config which will be created if it doesn't exist.
+	configs, err := os.Open("config")
+	if err != nil {
+		log.Fatalln(err)
+	}
 
-    var ConfigFolder = store.Goto("config")
-    ConfigFolder.Create()
-
-    var Config = ConfigFolder.Value("config.ini")
-
-    if err := Config.SetString("[INI]\n\ta = 1234\n"); err != nil {
-        fmt.Println(err)
-    }
+    //Set the given file to be equal to the given string.
+	if err := configs.File("config.ini").SetString("[INI]\n\ta = 1234\n"); err != nil {
+		log.Fatalln(err)
+	}
 }
 ```
 
-**Creating a new backend:**  
-On the backend side, there are Nodes, Cursor, Data and Tree interfaces to implement.  
+**License**  
+This work is subject to the terms of the Qlova Public
+License, Version 2.0. If a copy of the QPL was not distributed with this
+work, You can obtain one at https://license.qlova.org/v2
+
+The QPL is compatible with the AGPL which is why both licenses are provided within this repository.
