@@ -1,0 +1,333 @@
+package db
+
+import (
+	"fmt"
+	"time"
+	"encoding/json"
+	"reflect"
+	"testing"
+)
+
+
+//Available database column types.
+type (
+	Int8 struct { Type[int8] }
+	Int16 struct { Type[int16] }
+	Int32 struct { Type[int32] }
+	Int64 struct { Type[int64] }
+
+	Float32 struct { Type[float64] }
+	Float64 struct { Type[float64] }
+
+	Rune = Int32
+
+	Bool struct { Type[bool] }
+	Bytes struct { Type[[]byte] }
+	String struct { Type[string] }
+
+	Time struct { Type[time.Time] }
+
+	UUID struct {Type[uid]}
+)
+
+type Type[T any] struct {
+	driver Driver
+	table, column string
+	field int
+	view Table
+
+	key bool
+
+	value T
+	slice []T
+
+	master *T
+}
+
+func (t Type[T]) Column() string {
+	return t.column
+}
+
+func (t Type[T]) FieldName() string {
+	return t.column
+}
+
+func (t Type[T]) Field() int {
+	return t.field
+}
+
+func (t Type[T]) Database() Driver {
+	return t.driver
+}
+
+func (t Type[T]) Table() string {
+	return t.table
+}
+
+func (t *Type[T]) Master() bool {
+	return t.master == &t.value
+}
+
+func (t Type[T]) Key() bool {
+	return t.key
+}
+
+func (t Type[T]) String() string {
+	return fmt.Sprint(t.value)
+}
+
+func (t Type[T]) Increasing() Sorter {
+	return Sorter{
+		t.column,
+		false,
+	}
+}
+
+func (t Type[T]) Decreasing() Sorter {
+	return Sorter{
+		t.column,
+		true,
+	}
+}
+
+func (t Type[T]) Value() T {
+	return t.value
+}
+
+func (t Type[T]) Equals(val T) Condition {
+	return Condition{
+		Table: t.table,
+		View: t.view,
+		driver: t.driver,
+		Column:   t.column,
+		Operator: OpEquals,
+		Value:    val,
+	}
+}
+
+func (t Type[T]) NotEquals(val T) Condition {
+	return Condition{
+		Table: t.table,
+		View: t.view,
+		driver: t.driver,
+		Column:   t.column,
+		Operator: OpNotEquals,
+		Value:    val,
+	}
+}
+
+func (t Type[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(t.value)
+}
+
+func (t Type[T]) Interface() interface{} {
+	return t.value
+}
+
+func (t Type[T]) Type() reflect.Type {
+	return reflect.TypeOf([0]T{}).Elem()
+}
+
+func (t *Type[T]) Pointer() interface{} {
+	return &t.value
+}
+
+func (t *Type[T]) Make(length int) interface{} {
+	if len(t.slice) != length {
+		t.slice = make([]T, length)
+	}
+	return t.slice
+}
+
+func (t *Type[T]) Slice(index int) interface{} {
+	if index < len(t.slice) && index >= 0 {
+		return &t.slice[index]
+	}
+	return nil
+}
+
+func (t *Type[T]) Index(index int) bool {
+	if index < len(t.slice) && index >= 0 {
+		t.value = t.slice[index]
+		return true
+	}
+	return false
+}
+
+func (t *Type[T]) setprivate(
+		table, column string,
+		field int,
+		key bool,
+		driver Driver,
+		view Table,
+	) {
+		
+	t.table = table
+	t.column = column
+	t.field = field
+	t.key = key
+	t.driver = driver
+	t.view = view
+}
+
+func (t *Type[T]) Set(val T) {
+	t.value = val
+}
+
+func (t Type[T]) To(val T) Update {
+	return Update{
+		Table: t.table,
+		driver: t.driver,
+		Column: t.column,
+		Value:  val,
+	}
+}
+
+func (t Type[T]) On(other struct{Type[T]}) Linker {
+	return Linker{
+		From: t,
+		To: other,
+		View: t.view,
+	}
+}
+
+
+func (t Type[T]) Test(ctx *testing.T) {
+	var Testable struct {
+		View `db:"testable"`
+
+		Value Type[T]
+	}
+
+	defer Open().Connect(&Testable).Close()
+
+	shouldNotError(
+		Sync(Testable),
+	).Test(ctx)
+
+	var zero T
+
+	//Test insert and setting. Unforunately we cannot test a non-zero value because generics.
+
+	var test = Testable
+	test.Value.Set(zero)
+
+	shouldNotError(
+		Insert(test),
+	).Test(ctx)
+
+	//Test equals.
+	var result = Testable
+
+	shouldNotError(
+		If(Testable.Value.Equals(zero)).Get(&result),
+	).Test(ctx)
+
+	shouldBe(zero)(result.Value.Value()).Test(ctx)
+
+	//Test update.
+	shouldNotError(
+		If(Testable.Value.Equals(zero)).Update(
+			result.Value.To(zero),
+		),
+	).Test(ctx)
+
+	//Cleanup
+	shouldNotError(
+		Delete(&Testable),
+	).Test(ctx)
+}
+
+/*func (t Type[T]) On(other T) Linker {
+	return Linker{
+		From: u.Column,
+		Join: Inner,
+		To:   other.metadata,
+	}
+}*/
+
+
+//StartMock
+type STARTMOCK int
+
+//Operator type in a condition.
+type Operator int
+
+//Operators
+const (
+	NoOperator Operator = iota
+	OpEquals
+	OpContains
+	OpNotEquals
+	OpHasPrefix
+	OpLessThan
+)
+
+
+type Driver interface {
+	Connect(...interface{}) Driver
+	Close() error
+}
+
+type filter interface {
+	Get(...interface{}) error
+	Update(...interface{}) error
+}
+
+type View interface{}
+
+type Column interface{}
+
+type Linker struct{From, To Column, View interface{}}
+
+
+func Open() Driver {return nil}
+
+type testError interface {
+	Test(*testing.T)
+}
+
+func shouldNotError(...interface{}) testError {
+	return nil
+}
+
+type Table interface{}
+
+func Insert(...interface{}) error {return nil}
+
+func If(...interface{}) filter {return nil}
+
+func Delete(...interface{}) error {return nil}
+
+func Sync(...interface{}) error {return nil}
+
+func shouldBe(...interface{}) func(...interface{}) testError {
+	return nil
+}
+
+type Sorter struct {
+	string
+	bool
+}
+
+type Condition struct {
+	Table, Column string
+	Operator
+	Value interface{}
+
+	View Table
+
+	driver Driver
+}
+
+type uid struct{}
+
+//Update describes a modification to make to a row in the database.
+type Update struct {
+	driver        Driver
+	Column, Table string
+	Value         interface{}
+}
+
+type ENDMOCK int
+//EndMock

@@ -1,0 +1,49 @@
+package in
+
+type Iterator[type T any] interface {
+	Next() (T, error)
+}
+
+//Map stores a mapping between keys and values.
+type Map[type KEY comparable, VAL any] interface {
+	Set(KEY, VAL) error
+	Get(KEY) (VAL, error)
+
+	Range() Iterator[KEY]
+
+	Delete(KEY) error
+
+	Len() (int, error)
+}
+
+//BuiltinMap is a Map implementation using the builtin map type.
+type BuiltinMap[type KEY comparable, VAL any] map[KEY]VAL
+
+func (m BuiltinMap[KEY, VAL]) Set(key KEY, val VAL) error {
+	if m == nil {
+		return errors.New("set called on nil map")
+	}
+	m[key] = val
+	return nil
+}
+
+func (m BuiltinMap[KEY, VAL]) Get(key KEY) (val VAL, err error) {
+	return m[key], nil
+}
+
+func (m BuiltinMap[KEY, VAL]) Keys() (keys []KEY) {
+	keys = make([]KEY, 0, len(m))
+	for key := range m {
+		keys = append(keys, key)
+	}
+	return
+}
+
+func (m BuiltinMap[KEY, VAL]) Delete(key KEY) error {
+	delete(m, key)
+	return nil
+}
+
+func (m BuiltinMap[KEY, VAL]) Len() (int, error) {
+	return len(m), nil
+}

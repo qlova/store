@@ -1,0 +1,25 @@
+package in
+
+import "testing"
+import "fmt"
+
+func Test_Map(t *testing.T) {
+	type Test struct {
+		Elements Map[string, int]
+	}
+
+	var m = make(GoMap[string, int])
+	m.Set("a", 1)
+	m.Set("b", 2)
+	m.Set("c", 3)
+
+	fmt.Println(m.Get("a"))
+
+	m.Delete("a")
+
+	fmt.Println(m.Len())
+
+	for i, v := range m {
+		fmt.Println(i, v)
+	}
+}
