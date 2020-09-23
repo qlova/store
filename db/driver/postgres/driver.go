@@ -177,7 +177,7 @@ func (d driver) Search(filter db.Filter) db.Results {
 		}
 
 		if joined {
-			query.WriteString(cname(c.Table))
+			query.WriteString(c.Table)
 			query.WriteByte('.')
 		}
 		query.WriteString(cname(c.Column))
