@@ -29,8 +29,12 @@ type selection struct {
 
 func (s *selection) addCondition(c Condition) {
 	switch c.Operator {
-	case NoOperator:
+	case OpTrue:
 		return
+	case OpFalse:
+		s.conditions = append(s.conditions, func(v reflect.Value) bool {
+			return false
+		})
 	case OpEquals:
 		s.conditions = append(s.conditions, func(v reflect.Value) bool {
 			return reflect.DeepEqual(v.FieldByName(c.Column).Interface(), c.Value)
@@ -38,6 +42,10 @@ func (s *selection) addCondition(c Condition) {
 	case OpNotEquals:
 		s.conditions = append(s.conditions, func(v reflect.Value) bool {
 			return !reflect.DeepEqual(v.FieldByName(c.Column).Interface(), c.Value)
+		})
+	case OpDivisibleBy:
+		s.conditions = append(s.conditions, func(v reflect.Value) bool {
+			return v.FieldByName(c.Column).Interface().(int64)%c.Value.(int64) == 0
 		})
 	default:
 		panic("not implemented") // TODO: Implement
@@ -49,6 +57,10 @@ func (s *selection) addUpdate(u Update) {
 		v.FieldByName(u.Column).Set(reflect.ValueOf(u.Value))
 		return nil
 	})
+
+	if u.Then != nil {
+		s.addUpdate(*u.Then)
+	}
 }
 
 func (s selection) MarshalJSON() ([]byte, error) {

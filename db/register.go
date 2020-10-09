@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 	"strings"
+	"unsafe"
 )
 
 //Connect initialises and connects the given viewer.
@@ -59,13 +60,27 @@ func Connect(viewer Viewer, driver Driver) error {
 
 			setter.setprivate(
 				table.name, name,
-				i,
+				field.Offset,
 				key,
 				driver,
 				viewer,
 			)
 
-			columns = append(columns, rvalue.Interface().(Column))
+			columns = append(columns, setter)
+
+			//Special case for Text.
+			if t, ok := rvalue.Addr().Interface().(*Text); ok {
+
+				t.WordIndex.setprivate(
+					table.name, name+"_index",
+					field.Offset+unsafe.Offsetof(t.WordIndex),
+					false,
+					driver,
+					viewer,
+				)
+
+				columns = append(columns, &t.WordIndex)
+			}
 		}
 	}
 

@@ -73,7 +73,8 @@ func (r results) MarshalJSON() ([]byte, error) {
 	query.WriteByte(' ')
 	query.WriteString(r.query)
 
-	//fmt.Printf("\n\n"+query.String(), r.values...)
+	//fmt.Println("\n\n" + query.String())
+	//fmt.Println(r.values...)
 
 	rows, err := r.pq.Query(query.String(), r.values...)
 	if err != nil {
@@ -168,13 +169,19 @@ func (r results) Update(update db.Update, updates ...db.Update) (int, error) {
 
 	query.WriteString("SET ")
 
-	addupdate := func(update db.Update) {
+	var addupdate func(update db.Update)
+	addupdate = func(update db.Update) {
 		query.WriteString(update.Column)
 		query.WriteByte('=')
 		query.WriteString("$")
 		query.WriteString(strconv.Itoa(len(r.values) + 1))
 
 		r.values = append(r.values, update.Value)
+
+		if update.Then != nil {
+			query.WriteString(",")
+			addupdate(*update.Then)
+		}
 	}
 
 	addupdate(update)

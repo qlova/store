@@ -1,8 +1,6 @@
 package db
 
 import (
-	"reflect"
-
 	"github.com/google/uuid"
 )
 
@@ -36,32 +34,37 @@ type Insertion struct {
 
 //Row makes the insetion operation insert the given row.
 func (insert *Insertion) Row(row Row) error {
-	var RowType = reflect.TypeOf(row)
-	var RowValue = reflect.ValueOf(row)
-
 	insert.Table = row.Row()
 
-	for i := 0; i < RowType.NumField(); i++ {
-		value, ok := RowValue.Field(i).Interface().(Viewable)
-		if ok {
-			insert.Columns = append(insert.Columns, value.Column())
-			insert.Uniques = append(insert.Uniques, value.Key())
+	for i := 0; i < insert.Table.Columns(); i++ {
+		col := insert.Table.Column(i)
 
-			//Hacky feature that can automatically generate a UUID if it is tagged as a key.
-			if id, ok := value.(UUID); ok && id.Value() == uuid.Nil {
-				if id.Key() {
-					id, err := uuid.NewRandom()
-					if err != nil {
-						return err
-					}
+		insert.Columns = append(insert.Columns, col.Column())
+		insert.Uniques = append(insert.Uniques, col.Key())
 
-					insert.Values = append(insert.Values, id)
-					continue
-				}
+		id, ok := col.(UUID)
+		if !ok {
+			var uid *UUID
+			uid, ok = col.(*UUID)
+			if ok {
+				id = *uid
 			}
-
-			insert.Values = append(insert.Values, value.Interface())
 		}
+
+		//Hacky feature that can automatically generate a UUID if it is tagged as a key.
+		if ok && id.Value() == uuid.Nil {
+			if id.Key() {
+				id, err := uuid.NewRandom()
+				if err != nil {
+					return err
+				}
+
+				insert.Values = append(insert.Values, id)
+				continue
+			}
+		}
+
+		insert.Values = append(insert.Values, LookAt(row, col).Interface())
 	}
 
 	return nil

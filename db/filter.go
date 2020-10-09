@@ -1,9 +1,5 @@
 package db
 
-import (
-	"reflect"
-)
-
 //Linker links two tables together so that they can be searched on.
 type Linker struct {
 	From, To Viewable
@@ -13,6 +9,7 @@ type Linker struct {
 
 //Sorter defines how to sort a given column.
 type Sorter struct {
+	Table      string
 	Column     string
 	Decreasing bool
 }
@@ -23,12 +20,9 @@ type Slicer Filter
 //Into moves the filter's selection into the given viewer.
 func (s Slicer) Into(v Viewer) (int, error) {
 	var columns = make([]Variable, v.Columns())
-	var rviewer = reflect.ValueOf(v).Elem()
 
 	for i := 0; i < v.Columns(); i++ {
-		column := v.Column(i)
-
-		columns[i] = rviewer.Field(column.Field()).Addr().Interface().(Variable)
+		columns[i] = Mutate(v, v.Column(i))
 	}
 
 	s.Columns = columns
@@ -134,12 +128,9 @@ func (f Filter) Get(v Viewer) error {
 	}
 
 	var columns = make([]Variable, v.Columns())
-	var rviewer = reflect.ValueOf(v).Elem()
 
 	for i := 0; i < v.Columns(); i++ {
-		column := v.Column(i)
-
-		columns[i] = rviewer.Field(column.Field()).Addr().Interface().(Variable)
+		columns[i] = Mutate(v, v.Column(i))
 	}
 
 	_, err := v.Database().Search(f).Get(columns[0], columns[1:]...)

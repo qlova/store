@@ -2,6 +2,7 @@ package db
 
 import (
 	"reflect"
+	"unsafe"
 )
 
 type table struct {
@@ -34,8 +35,8 @@ type Column interface {
 	Column() string
 	Database() Driver
 	Type() reflect.Type
+	Offset() uintptr
 	Key() bool
-	Field() int
 }
 
 //Row can return its table definition.
@@ -137,7 +138,7 @@ type value interface {
 
 	setprivate(
 		table, column string,
-		field int,
+		offset uintptr,
 		key bool,
 		driver Driver,
 		view Table,
@@ -164,4 +165,25 @@ type Viewable interface {
 
 	Interface() interface{}
 	Table() string
+}
+
+//LookAt allows a column inside of a row to be viewed.
+func LookAt(row Row, column Column) Viewable {
+	if column.Offset() == 0 {
+		panic("invalid offset")
+	}
+
+	rp := reflect.New(reflect.TypeOf(row))
+	rp.Elem().Set(reflect.ValueOf(row))
+
+	return reflect.NewAt(reflect.TypeOf(column).Elem(), unsafe.Pointer(rp.Pointer()+column.Offset())).Interface().(Viewable)
+}
+
+//Mutate allows a column inside of a viewer to be modified.
+func Mutate(v Viewer, column Column) Variable {
+	if column.Offset() == 0 {
+		panic("invalid offset")
+	}
+
+	return reflect.NewAt(reflect.TypeOf(column).Elem(), unsafe.Pointer(reflect.ValueOf(v).Pointer()+column.Offset())).Interface().(Variable)
 }

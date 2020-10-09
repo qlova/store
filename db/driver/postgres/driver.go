@@ -163,16 +163,25 @@ func (d driver) Search(filter db.Filter) db.Results {
 		if len(c.Cases) > 0 {
 			query.WriteByte('(')
 			defer func() {
-				for _, c := range c.Cases {
-					query.WriteString(" OR ")
-					addCondition(c)
+				for _, sub := range c.Cases {
+					if c.Invert {
+						query.WriteString(" AND ")
+					} else {
+						query.WriteString(" OR ")
+					}
+					addCondition(sub)
 				}
 				query.WriteByte(')')
 			}()
 		}
 
-		if c.Operator == 0 {
+		if c.Operator == db.OpTrue {
 			query.WriteString("TRUE")
+			return
+		}
+
+		if c.Operator == db.OpFalse {
+			query.WriteString("False")
 			return
 		}
 
@@ -181,37 +190,63 @@ func (d driver) Search(filter db.Filter) db.Results {
 			query.WriteByte('.')
 		}
 		query.WriteString(cname(c.Column))
-		if c.Operator != db.NoOperator {
-			switch c.Operator {
-			case db.OpEquals:
-				query.WriteByte('=')
-			case db.OpNotEquals:
-				query.WriteByte('!')
-				query.WriteByte('=')
-			case db.OpLessThan:
-				query.WriteByte('<')
-			case db.OpContains:
-				query.WriteString(" LIKE ")
-				c.Value = fmt.Sprintf("%%%v%%", c.Value)
-			case db.OpHasPrefix:
-				query.WriteString(" LIKE ")
-				c.Value = fmt.Sprintf("%v%%", c.Value)
-			default:
-				panic("unsupported operator: " + strconv.Itoa(int(c.Operator)))
-			}
+		switch c.Operator {
+		case db.OpEquals:
+			query.WriteByte('=')
+		case db.OpDivisibleBy:
+			query.WriteByte('%')
+		case db.OpNotEquals:
+			query.WriteByte('!')
+			query.WriteByte('=')
+		case db.OpLessThan:
+			query.WriteByte('<')
+		case db.OpContains:
+			query.WriteString(" LIKE ")
+			c.Value = fmt.Sprintf("%%%v%%", c.Value)
+		case db.OpHasPrefix:
+			query.WriteString(" LIKE ")
+			c.Value = fmt.Sprintf("%v%%", c.Value)
+		default:
+			panic("unsupported operator: " + strconv.Itoa(int(c.Operator)))
 		}
 
 		query.WriteByte('$')
 		query.WriteString(strconv.Itoa(len(values) + 1))
 		values = append(values, c.Value)
+
+		if c.Operator == db.OpDivisibleBy {
+			query.WriteString(`=0`)
+		}
 	}
 
-	if filter.Condition.Operator != db.NoOperator || len(filter.Conditions) > 0 {
+	if filter.Condition.Operator != db.OpTrue || len(filter.Conditions) > 0 {
 		query.WriteString(" WHERE ")
 		addCondition(filter.Condition)
 		for _, condition := range filter.Conditions {
 			query.WriteString(" AND ")
 			addCondition(condition)
+		}
+	}
+
+	addSort := func(sort db.Sorter) {
+		if sort.Column != "" {
+			if joined {
+				query.WriteString(sort.Table)
+				query.WriteByte('.')
+			}
+			query.WriteString(cname(sort.Column))
+			if sort.Decreasing {
+				query.WriteString(` DESC`)
+			}
+		}
+	}
+
+	if filter.Sort.Column != "" {
+		query.WriteString(" ORDER BY ")
+		addSort(filter.Sort)
+		for _, sort := range filter.Sorts {
+			query.WriteString(",")
+			addSort(sort)
 		}
 	}
 

@@ -15,6 +15,13 @@ type Update struct {
 	driver        Driver
 	Column, Table string
 	Value         interface{}
+
+	Then *Update
+}
+
+func (u Update) And(other Update) Update {
+	u.Then = &other
+	return u
 }
 
 //Driver is a database driver.

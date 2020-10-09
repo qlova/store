@@ -33,8 +33,9 @@ type (
 type Type[T any] struct {
 	driver Driver
 	table, column string
-	field int
 	view Table
+
+	offset uintptr
 
 	key bool
 
@@ -48,12 +49,12 @@ func (t Type[T]) Column() string {
 	return t.column
 }
 
-func (t Type[T]) FieldName() string {
-	return t.column
+func (t Type[T]) Offset() uintptr {
+	return t.offset
 }
 
-func (t Type[T]) Field() int {
-	return t.field
+func (t Type[T]) FieldName() string {
+	return t.column
 }
 
 func (t Type[T]) Database() Driver {
@@ -78,6 +79,7 @@ func (t Type[T]) String() string {
 
 func (t Type[T]) Increasing() Sorter {
 	return Sorter{
+		t.table,
 		t.column,
 		false,
 	}
@@ -85,6 +87,7 @@ func (t Type[T]) Increasing() Sorter {
 
 func (t Type[T]) Decreasing() Sorter {
 	return Sorter{
+		t.table,
 		t.column,
 		true,
 	}
@@ -156,15 +159,15 @@ func (t *Type[T]) Index(index int) bool {
 
 func (t *Type[T]) setprivate(
 		table, column string,
-		field int,
+		offset uintptr,
 		key bool,
 		driver Driver,
 		view Table,
 	) {
 		
 	t.table = table
+	t.offset = offset
 	t.column = column
-	t.field = field
 	t.key = key
 	t.driver = driver
 	t.view = view
@@ -278,7 +281,10 @@ type View interface{}
 
 type Column interface{}
 
-type Linker struct{From, To Column, View interface{}}
+type Linker struct{
+	From, To Column
+	View interface{}
+}
 
 
 func Open() Driver {return nil}
@@ -306,8 +312,9 @@ func shouldBe(...interface{}) func(...interface{}) testError {
 }
 
 type Sorter struct {
-	string
-	bool
+	a string
+	b string
+	c bool
 }
 
 type Condition struct {

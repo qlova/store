@@ -1,5 +1,20 @@
 package db
 
+//Operator type in a condition.
+type Operator int
+
+//Operators
+const (
+	OpTrue Operator = iota
+	OpFalse
+	OpEquals
+	OpContains
+	OpNotEquals
+	OpHasPrefix
+	OpLessThan
+	OpDivisibleBy
+)
+
 //LessThan returns a condition that is true if i is less then val.
 func (i Int64) LessThan(val int64) Condition {
 	return Condition{
@@ -9,6 +24,19 @@ func (i Int64) LessThan(val int64) Condition {
 
 		Column:   i.column,
 		Operator: OpLessThan,
+		Value:    val,
+	}
+}
+
+//DivisibleBy returns a condition that is true if i is divisible by val.
+func (i Int64) DivisibleBy(val int64) Condition {
+	return Condition{
+		Table:  i.table,
+		View:   i.view,
+		driver: i.driver,
+
+		Column:   i.column,
+		Operator: OpDivisibleBy,
 		Value:    val,
 	}
 }

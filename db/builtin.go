@@ -37,35 +37,36 @@ func (b Builtin) Connect(first Viewer, more ...Viewer) Driver {
 	return b
 }
 
-func (b Builtin) sync(table Table) error {
-	//Need to create a struct that represents this table.
-	var fields = make([]reflect.StructField, table.Columns())
-
-	for i := 0; i < table.Columns(); i++ {
-		column := table.Column(i)
-
-		fields[i] = reflect.StructField{
-			Name: column.Column(),
-			Type: column.Type(),
-		}
-	}
-
-	database[index(b, table.Table())] = &storage{
-		rtype: reflect.StructOf(fields),
-		slice: reflect.New(reflect.SliceOf(reflect.StructOf(fields))).Elem(),
-	}
-
-	return nil
-}
-
 //Sync syncs the Tables with the Database, adding any missing columns.
 //If constraints or types do not match up, an error is returned.
 func (b Builtin) Sync(table Table, tables ...Table) error {
-	if err := b.sync(table); err != nil {
+
+	sync := func(table Table) error {
+		//Need to create a struct that represents this table.
+		var fields = make([]reflect.StructField, table.Columns())
+
+		for i := 0; i < table.Columns(); i++ {
+			column := table.Column(i)
+
+			fields[i] = reflect.StructField{
+				Name: column.Column(),
+				Type: column.Type(),
+			}
+		}
+
+		database[index(b, table.Table())] = &storage{
+			rtype: reflect.StructOf(fields),
+			slice: reflect.New(reflect.SliceOf(reflect.StructOf(fields))).Elem(),
+		}
+
+		return nil
+	}
+
+	if err := sync(table); err != nil {
 		return err
 	}
 	for _, table := range tables {
-		if err := b.sync(table); err != nil {
+		if err := sync(table); err != nil {
 			return err
 		}
 	}
